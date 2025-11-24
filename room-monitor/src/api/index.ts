@@ -1,5 +1,0 @@
-export { roomApi } from './roomApi'
-export { alarmApi } from './alarmApi'
-export { historyApi } from './historyApi'
-export { realRoomApi } from './realRoomApi'
-export { deviceApi } from './deviceApi'
