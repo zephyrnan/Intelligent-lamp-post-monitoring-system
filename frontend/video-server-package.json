@@ -1,0 +1,18 @@
+{
+  "name": "mock-video-server",
+  "version": "1.0.0",
+  "description": "模拟监控视频流服务器",
+  "main": "mock-video-server.js",
+  "scripts": {
+    "start": "node mock-video-server.js",
+    "dev": "nodemon mock-video-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
