@@ -7,6 +7,9 @@
 
 基于 Vue 3 + Node.js + MongoDB 的智能灯杆监控系统，提供实时监控、历史数据分析、报警管理和人员检测等功能。
 
+<img width="1323" height="668" alt="屏幕截图 2025-12-07 021828" src="https://github.com/user-attachments/assets/29960ffb-936d-4e0d-be72-daba5a7c7d79" />
+<img width="1717" height="843" alt="屏幕截图 2025-12-07 014829" src="https://github.com/user-attachments/assets/7dd09450-8d66-469f-8a2f-5f29b0c51c42" />
+
 ## 项目简介
 
 智能灯杆监控系统是一个完整的物联网监控解决方案，包含前端展示界面和后端服务。系统支持多个监控点的实时数据采集、视频监控、智能报警和数据分析功能。
