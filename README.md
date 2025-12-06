@@ -9,7 +9,7 @@
 
 <img width="1323" height="668" alt="屏幕截图 2025-12-07 021828" src="https://github.com/user-attachments/assets/29960ffb-936d-4e0d-be72-daba5a7c7d79" />
 <img width="1717" height="843" alt="屏幕截图 2025-12-07 014829" src="https://github.com/user-attachments/assets/7dd09450-8d66-469f-8a2f-5f29b0c51c42" />
-![12c23a87ecfb668cab3aa35b92124c3](https://github.com/user-attachments/assets/41964b85-f565-43a8-8505-b223e19bacd4)
+<img width="480" height="388" alt="屏幕截图 2025-12-07 023404" src="https://github.com/user-attachments/assets/3f575735-10e5-4f31-8c13-ad2b0ade7905" />
 
 ## 项目简介
 
