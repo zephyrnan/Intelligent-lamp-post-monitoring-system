@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { useRoomStore, useWebSocketStore } from '@/stores'
@@ -151,6 +151,15 @@ const filterParams = computed(() => ({
 onMounted(() => {
   fetchRooms()
   setupWebSocketListeners()
+})
+
+onUnmounted(() => {
+  if (searchTimer.value) {
+    clearTimeout(searchTimer.value)
+  }
+  // 移除 WebSocket 事件监听，避免内存泄漏
+  wsStore.off('room_status_update')
+  wsStore.off('room_data_update')
 })
 
 async function fetchRooms() {
@@ -212,7 +221,7 @@ function setupWebSocketListeners() {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--space-md);
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.3s ease;
 }
 
 .page-header {
@@ -222,29 +231,14 @@ function setupWebSocketListeners() {
   margin-bottom: var(--space-2xl);
   padding: var(--space-xl);
   background: var(--bg-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(20px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-2xl);
+    border-color: var(--border-medium);
   }
 
   .header-content {
@@ -256,10 +250,6 @@ function setupWebSocketListeners() {
       font-size: 28px;
       font-weight: 700;
       color: var(--text-primary);
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
       line-height: 1.2;
     }
 
@@ -281,28 +271,24 @@ function setupWebSocketListeners() {
 
     .el-input {
       :deep(.el-input__wrapper) {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
         transition: all 0.3s ease;
 
         &:hover {
           border-color: var(--primary-color-light);
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
         }
 
         &.is-focus {
           border-color: var(--primary-color);
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
       }
     }
 
     .el-select {
       :deep(.el-select__wrapper) {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
         transition: all 0.3s ease;
 
         &:hover {
@@ -311,21 +297,19 @@ function setupWebSocketListeners() {
 
         &.is-focus {
           border-color: var(--primary-color);
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
       }
     }
 
     .el-button {
-      background: var(--gradient-primary);
+      background: var(--primary-color);
       border: none;
       padding: var(--space-sm) var(--space-lg);
       font-weight: 600;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
       }
     }
   }
@@ -336,7 +320,7 @@ function setupWebSocketListeners() {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
-  animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  animation: fadeInUp 0.3s ease 0.2s both;
 }
 
 .room-grid {
@@ -344,7 +328,7 @@ function setupWebSocketListeners() {
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: var(--space-xl);
   margin-bottom: var(--space-2xl);
-  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+  animation: fadeInUp 0.3s ease 0.4s both;
 }
 
 .loading-container,
@@ -365,9 +349,8 @@ function setupWebSocketListeners() {
 
 .skeleton-card {
   background: var(--bg-primary);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   padding: var(--space-xl);
-  box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-light);
   position: relative;
   overflow: hidden;
@@ -389,41 +372,41 @@ function setupWebSocketListeners() {
   justify-content: center;
   padding: var(--space-xl);
   background: var(--bg-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
-  backdrop-filter: blur(20px);
 
   :deep(.el-pagination) {
     .el-pager li {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       margin: 0 2px;
       transition: all 0.3s ease;
 
       &:hover {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
-        transform: scale(1.1);
+        border-color: var(--primary-color);
       }
 
       &.is-active {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
+        border-color: var(--primary-color);
       }
     }
 
     .btn-prev,
     .btn-next {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       transition: all 0.3s ease;
 
       &:hover {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
+        border-color: var(--primary-color);
       }
     }
   }

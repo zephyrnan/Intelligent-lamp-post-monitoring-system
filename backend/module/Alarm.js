@@ -68,8 +68,8 @@ let AlarmSchema = new mongoose.Schema({
 });
 
 // 创建索引以提高查询性能
+// alarmId 已通过 unique: true 自动创建索引
 AlarmSchema.index({ roomId: 1, timestamp: -1 });
-AlarmSchema.index({ alarmId: 1 });
 AlarmSchema.index({ status: 1 });
 AlarmSchema.index({ level: 1 });
 AlarmSchema.index({ date: 1 });

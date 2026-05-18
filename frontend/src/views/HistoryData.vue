@@ -49,7 +49,7 @@
           @change="handleDateChange"
           style="width: 200px"
         />
-        <span style="margin: 0 8px; color: #606266;">至</span>
+        <span style="margin: 0 8px; color: var(--text-secondary);">至</span>
         <el-date-picker
           v-model="endTime"
           type="datetime"
@@ -199,8 +199,9 @@ import type { HistoryData } from '@/types'
 const historyStore = useHistoryStore()
 const roomStore = useRoomStore()
 
-const startTime = ref(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // 最近7天
-const endTime = ref(new Date().toISOString())
+// 设置更大的时间范围以包含所有数据（从2025-01-01到未来一年）
+const startTime = ref(new Date('2025-01-01').toISOString())
+const endTime = ref(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString())
 const selectedRoom = ref('')
 const warnFilter = ref<number | ''>('')
 const metricFilter = ref('')
@@ -581,21 +582,21 @@ function getWarnLabel(warn: number): string {
   align-items: flex-start;
   margin-bottom: 24px;
   padding: 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
 
   .header-content {
     h2 {
       margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
 
     p {
       margin: 0;
-      color: #606266;
+      color: var(--text-secondary);
       font-size: 14px;
     }
   }
@@ -620,16 +621,11 @@ function getWarnLabel(warn: number): string {
 }
 
 .stat-card {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
   transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  }
 
   .stat-header {
     display: flex;
@@ -642,7 +638,7 @@ function getWarnLabel(warn: number): string {
     .stat-name {
       font-size: 16px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 
@@ -660,24 +656,24 @@ function getWarnLabel(warn: number): string {
 
       .stat-label {
         font-size: 12px;
-        color: #909399;
+        color: var(--text-tertiary);
         font-weight: 500;
       }
 
       .stat-number {
         font-size: 18px;
         font-weight: 700;
-        color: #303133;
+        color: var(--text-primary);
       }
     }
   }
 }
 
 .data-table {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 
   .table-header {
     display: flex;
@@ -689,7 +685,7 @@ function getWarnLabel(warn: number): string {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 }

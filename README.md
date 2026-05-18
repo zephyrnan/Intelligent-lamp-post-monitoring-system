@@ -3,9 +3,9 @@
 我是该项目前端开发人员，但由于后期设备限制，我自写后端，修改了前端，后端之前是SpringBoot和java写的，对接硬件和前端，如有错误，请指正
 
 
-# 智能灯杆监控系统
+# 智能灯杆物联网监控平台
 
-基于 Vue 3 + Node.js + MongoDB 的智能灯杆监控系统，提供实时监控、历史数据分析、报警管理和人员检测等功能。
+基于 Vue 3 + Node.js + MongoDB 的智能灯杆物联网监控平台，对接真实灯杆传感器（温湿度/烟雾/光照/电压电流），实现设备状态实时同步与故障告警可视化。
 
 <img width="1323" height="668" alt="屏幕截图 2025-12-07 021828" src="https://github.com/user-attachments/assets/29960ffb-936d-4e0d-be72-daba5a7c7d79" />
 <img width="1717" height="843" alt="屏幕截图 2025-12-07 014829" src="https://github.com/user-attachments/assets/7dd09450-8d66-469f-8a2f-5f29b0c51c42" />
@@ -13,363 +13,225 @@
 
 ## 项目简介
 
-智能灯杆监控系统是一个完整的物联网监控解决方案，包含前端展示界面和后端服务。系统支持多个监控点的实时数据采集、视频监控、智能报警和数据分析功能。
+面向城市智慧照明场景的物联网监控平台，支持多灯杆节点的实时数据采集、WebSocket 双向通信、多级告警管理、历史趋势分析和远程设备控制。系统前后端分离，前端采用 Vue 3 + TypeScript 强类型开发，后端基于 Express + MongoDB 提供 RESTful API 与 Socket.IO 实时推送。
 
 ## 系统架构
 
 ```
-智能灯杆监控系统
-├── frontend/          # Vue 3 前端应用
+Intelligent-lamp-post-monitoring-system/
+├── frontend/              # Vue 3 前端应用
 │   ├── src/
-│   │   ├── views/         # 页面视图
-│   │   ├── components/    # 组件
-│   │   ├── api/          # API 接口
-│   │   ├── stores/       # 状态管理
-│   │   └── types/        # 类型定义
-│   └── README.md     # 前端文档
+│   │   ├── views/             # 页面视图（6 个业务页面）
+│   │   ├── components/        # 组件
+│   │   │   ├── charts/        # 图表组件（BaseChart 通用封装）
+│   │   │   ├── common/        # 通用业务组件
+│   │   │   └── layout/        # 布局组件
+│   │   ├── stores/            # Pinia 状态管理（4 个模块）
+│   │   ├── api/               # API 接口层
+│   │   ├── types/             # TypeScript 类型定义
+│   │   ├── router/            # 路由配置
+│   │   └── utils/             # 工具函数
+│   └── package.json
 │
-└── backend/           # Node.js 后端服务
-    ├── routes/           # 路由
-    ├── module/           # 数据模型
-    └── README.md     # 后端文档
+└── backend/               # Node.js 后端服务
+    ├── routes/                # Express 路由
+    ├── module/                # Mongoose 数据模型
+    ├── services/              # 业务逻辑层
+    ├── bin/www                # 启动入口
+    └── app.js                 # 应用配置
 ```
-
-## 核心功能
-
-### 🏠 房间监控
-- 实时监控多个房间的环境数据
-- 温度、湿度、烟雾、光照等多维度数据采集
-- 设备状态实时显示
-- 可视化数据展示
-
-### 📹 视频监控
-- 实时视频流传输（WebSocket）
-- 多房间视频监控
-- 视频流状态监控
-
-### 👥 人员检测
-- AI 人员检测功能
-- 检测结果可视化
-- 历史检测记录
-- 原始图片和检测图片对比
-
-### 🚨 报警管理
-- 多级别报警系统（低/中/高/严重）
-- 报警确认和处理流程
-- 报警统计分析
-- 报警历史查询
-
-### 📊 数据分析
-- 历史数据趋势图（ECharts）
-- 多指标对比分析
-- 数据聚合（按小时/天/周）
-- 统计报表
-
-### 🎛️ 设备控制
-- 远程设备开关控制
-- 实时控制状态反馈
-- 批量设备管理
 
 ## 技术栈
 
-### 前端技术
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全
-- **Vite** - 快速构建工具
-- **Element Plus** - UI 组件库
-- **Pinia** - 状态管理
-- **ECharts** - 数据可视化
-- **Socket.IO Client** - 实时通信
+### 前端
 
-### 后端技术
-- **Node.js** - JavaScript 运行时
-- **Express** - Web 应用框架
-- **MongoDB** - NoSQL 数据库
-- **Mongoose** - ODM 库
-- **Socket.IO** - WebSocket 服务
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Vue 3 | 3.5 | 渐进式框架，Composition API |
+| TypeScript | 5.8 | 强类型开发 |
+| Pinia | 3.0 | 状态管理 |
+| Vue Router | 4.5 | 客户端路由 |
+| ECharts | 5.6 | 数据可视化 |
+| vue-echarts | 7.0 | ECharts Vue 封装 |
+| Socket.IO Client | 4.8 | WebSocket 实时通信 |
+| Element Plus | 2.11 | UI 组件库 |
+| Axios | 1.12 | HTTP 客户端 |
+| Vite | 7.0 | 构建工具 |
+
+### 后端
+
+| 技术 | 用途 |
+|------|------|
+| Node.js | JavaScript 运行时 |
+| Express | Web 框架 |
+| MongoDB + Mongoose | 数据持久化 |
+| Socket.IO | WebSocket 双向通信 |
+
+## 核心功能
+
+### 实时通信架构
+
+基于 Socket.IO 构建双向长连接，实现灯杆传感器数据的实时推送。
+
+- **30s 心跳检测**：定时发送 ping/pong 维持连接活性
+- **指数退避重连**：断线后自动重连，延迟从 1s 起按 `2^n` 递增（上限 30s），附加 ±20% 随机抖动避免惊群效应，最大重连 10 次
+- **事件驱动架构**：支持 `room:update`、`alarm:new`、`device:status`、`detection:result`、`video_frame` 等事件
+
+```typescript
+// 指数退避算法
+function getReconnectDelay(attempt: number): number {
+  const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
+  const jitter = delay * 0.2 * (Math.random() * 2 - 1)
+  return Math.round(delay + jitter)
+}
+```
+
+### 告警状态管理
+
+基于 Pinia 构建告警状态管理，实现告警全生命周期（触发/确认/消警）的标准化流转。
+
+- **状态机约束**：严格限制状态转换路径 `active → acknowledged → resolved`，禁止跳过或回退
+- **四级分级告警**：critical / high / medium / low
+- **泛型传感器阈值配置**：使用 `SensorThreshold<T>` 泛型类型，配置驱动的阈值判断，支持 4 类传感器（温湿度/烟雾/水位）
+
+```typescript
+// 状态机转换表
+const VALID_TRANSITIONS: Record<AlarmStatus, AlarmStatus[]> = {
+  active: ['acknowledged'],
+  acknowledged: ['resolved'],
+  resolved: []
+}
+
+// 泛型阈值配置
+interface SensorThreshold<T extends SensorType> {
+  type: T
+  label: string
+  unit: string
+  levels: Record<AlarmLevel, ThresholdRange>
+}
+```
+
+### 数据可视化
+
+基于 ECharts 封装 BaseChart 通用图表组件，支持折线图、柱状图、饼图三种类型切换与实时数据更新。
+
+- **setOption 节流**：200ms 节流控制 ECharts 更新频率，减少高频数据下的无效渲染
+- **IntersectionObserver 懒加载**：非可视区域图表延迟渲染，降低首屏渲染负担
+- **DataZoom 交互浏览**：支持历史趋势数据的滑动缩放与区间选择
+- **自定义 Tooltip**：带单位的多系列数据展示
+
+### 设备监控
+
+- **多灯杆节点管理**：灯杆列表、状态筛选、实时数据展示
+- **8 路传感器数据**：温度/湿度/烟雾/水位/光照/旁路电流/旁路电压/总电压
+- **远程设备控制**：继电器/电磁阀远程开关控制，实时状态反馈
+- **实时视频监控**：WebSocket 帧推送 + Canvas 渲染
+
+### 人员检测
+
+- AI 目标检测（YOLOv 系列）
+- 检测结果可视化（原始图/标注图对比）
+- 检测历史记录管理
+
+### 历史数据分析
+
+- 多指标趋势图（温度/湿度/烟雾等）
+- 数据聚合查询（按时间范围筛选）
+- 统计报表与导出
+
+## 工程化建设
+
+- **TypeScript 严格模式**：`strict: true` + `noImplicitAny`，全链路类型安全
+- **通用组件封装**：BaseChart、DeviceControl、StatusCard、RoomCard 等业务组件，统一 Props 类型规范
+- **Pinia 模块化 Store**：websocketStore / roomStore / alarmStore / historyStore 四大模块，职责分离
+- **API 层抽象**：支持 Mock 与真实 API 双数据源切换
 
 ## 快速开始
 
 ### 环境要求
 
-- **Node.js**: >= 20.19.0
-- **MongoDB**: >= 5.0.0
-- **npm/yarn/pnpm**: 最新稳定版
+- Node.js >= 20.19.0
+- MongoDB >= 5.0
+- npm / yarn / pnpm
 
-### 安装步骤
-
-#### 1. 克隆项目
+### 安装与启动
 
 ```bash
+# 克隆项目
 git clone https://github.com/zephyrnan/Intelligent-lamp-post-monitoring-system.git
 cd Intelligent-lamp-post-monitoring-system
-```
 
-#### 2. 安装并启动后端
-
-```bash
-# 进入后端目录
+# 启动后端（确保 MongoDB 已运行）
 cd backend
-
-# 安装依赖
 npm install
-
-# 确保 MongoDB 已启动
-# Windows: 在服务中启动 MongoDB
-# macOS/Linux: sudo systemctl start mongodb
-
-# 启动后端服务
 npm start
-```
+# 后端运行于 http://localhost:3000
 
-后端服务将在 `http://localhost:3000` 启动
-
-#### 3. 安装并启动前端
-
-```bash
-# 打开新终端，进入前端目录
+# 新开终端，启动前端
 cd frontend
-
-# 安装依赖
 npm install
-
-# 启动开发服务器
 npm run dev
+# 前端运行于 http://localhost:5173
 ```
 
-前端应用将在 `http://localhost:5173` 启动
+### 配置说明
 
-### 访问应用
-
-打开浏览器访问: `http://localhost:5173`
-
-## 项目结构
-
-### 前端结构
-```
-frontend/
-├── src/
-│   ├── api/                    # API 接口
-│   ├── components/            # 组件
-│   │   ├── charts/           # 图表组件
-│   │   ├── common/           # 通用组件
-│   │   └── layout/           # 布局组件
-│   ├── stores/               # Pinia 状态管理
-│   ├── views/                # 页面视图
-│   ├── types/                # TypeScript 类型
-│   ├── router/               # 路由配置
-│   └── assets/               # 静态资源
-├── public/                   # 公共资源
-├── package.json             # 依赖配置
-└── README.md               # 前端文档
-```
-
-### 后端结构
-```
-backend/
-├── routes/                   # 路由处理
-│   ├── rooms.js             # 房间数据路由
-│   ├── alarms.js            # 报警管理路由
-│   ├── detections.js        # 人员检测路由
-│   └── roomslist.js         # 历史数据路由
-├── module/                   # 数据模型
-│   ├── Alarm.js             # 报警模型
-│   ├── PersonDetection.js   # 检测模型
-│   └── RoomsList.js         # 历史数据模型
-├── bin/
-│   └── www                   # 启动脚本
-├── app.js                    # 应用入口
-├── package.json             # 依赖配置
-└── README.md               # 后端文档
-```
-
-## 配置说明
-
-### 后端配置
-
-修改 `backend/app.js` 中的数据库连接：
-
+**后端 MongoDB 连接**（`backend/app.js`）：
 ```javascript
 mongoose.connect('mongodb://localhost:27017/roomMonitor')
 ```
 
-修改 `backend/app.js` 中的 CORS 配置（如需限制来源）：
-
-```javascript
-res.header("Access-Control-Allow-Origin", "*"); // 修改为具体域名
-```
-
-### 前端配置
-
-修改 `frontend/src/api/` 中各个 API 文件的 `API_BASE` 常量：
-
+**前端 API 地址**（`frontend/src/api/`）：
 ```typescript
-const API_BASE = 'http://localhost:3000'  // 修改为后端实际地址
+const API_BASE = 'http://localhost:3000'
 ```
 
-## API 文档
+## API 端点
 
-详细的 API 文档请查看 [backend/README.md](backend/README.md)
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/rooms` | 获取所有灯杆数据 |
+| GET | `/rooms/:id` | 获取单个灯杆详情 |
+| GET | `/rooms/:id/device/control` | 获取设备控制状态 |
+| POST | `/rooms/:id/device/control` | 远程设备控制 |
+| GET | `/history` | 查询历史传感器数据 |
+| GET | `/alarms` | 获取告警列表（支持筛选/分页） |
+| POST | `/alarms` | 创建告警 |
+| PUT | `/alarms/:id/acknowledge` | 确认告警 |
+| PUT | `/alarms/:id/resolve` | 解决告警 |
+| POST | `/detections/detect/:roomId` | 触发人员检测 |
+| GET | `/detections` | 获取检测历史 |
 
-主要 API 端点：
+## 近期改进（2026-05-18）
 
-- `GET /rooms` - 获取所有房间
-- `GET /rooms/:id` - 获取单个房间数据
-- `GET /history` - 获取历史数据
-- `GET /alarms` - 获取报警列表
-- `POST /alarms` - 创建报警
-- `POST /detections/detect/:roomId` - 触发人员检测
-- `GET /detections` - 获取检测历史
+### Bug 修复
 
-## 部署指南
+1. **RoomDetail.vue WebSocket 内存泄漏** — 组件卸载时未注销事件监听，导致回调函数残留在全局 store 上。修复：`onUnmounted` 中添加 `wsStore.off()` 调用。
+2. **websocketStore eventListeners 响应式陷阱** — 使用 `ref<Map>()` 包装回调函数 Map，Vue 会为每个函数添加 Proxy 拦截器，造成无意义的性能开销。修复：改为普通 `new Map()`。
+3. **BaseChart.vue ECharts 数据响应式性能黑洞** — 大量数据点（5000+）通过响应式传递给 ECharts，Vue 深度遍历添加 getter/setter 导致渲染卡顿。修复：使用 `markRaw()` 剥离响应式。
+4. **RoomList.vue 定时器和 WS 监听泄漏** — 缺少 `onUnmounted`，搜索定时器和 WebSocket 监听器未清理。
+5. **BaseChart.vue throttleTimer 泄漏** — 组件卸载时未清理节流定时器。
+6. **websocketStore Socket 深度代理** — `ref<Socket>` 改为 `shallowRef<Socket>`，避免对 Socket.IO 实例进行无意义的深度 Proxy。
+7. **websocketStore pong 监听器重复注册** — 每次重连都会添加新的 pong 监听器，移到 `connect()` 中只注册一次。
+8. **websocketStore 重复 computed** — 移除重复的 `connected`，统一使用 `isConnected`。
+9. **RoomDetail.vue 竞态条件** — 快速切换房间时异步响应乱序，添加 `fetchRequestId` 防护；watch 中添加 `leaveRoom(oldId)`。
+10. **DeviceControl.vue 双重请求** — `watch(immediate: true)` 和 `onMounted` 各调用一次 `fetchDeviceStatus`，移除重复调用。
+11. **WebSocketVideoStream.vue 房间泄漏** — watch 中未调用 `leaveRoom(oldId)`。
 
-### 开发环境
+### UI 改造
 
-```bash
-# 后端
-cd backend && npm start
+- 全局设计风格从毛玻璃渐变风切换为 **Vercel 极简风格**（偏蓝色调）
+- 移除所有 `backdrop-filter`、装饰性渐变叠加层、hover 浮动动画
+- 统一使用 CSS 变量控制颜色和间距，详见 `DESIGN.md`
 
-# 前端
-cd frontend && npm run dev
-```
+## 项目文档
 
-### 生产环境
-
-#### 后端部署
-
-```bash
-# 使用 PM2
-npm install -g pm2
-cd backend
-pm2 start bin/www --name room-monitor-backend
-
-# 或使用 Docker
-docker-compose up -d
-```
-
-#### 前端部署
-
-```bash
-cd frontend
-npm run build
-
-# 将 dist/ 目录部署到 Nginx 或其他 Web 服务器
-```
-
-详细部署说明请查看各子项目的 README。
-
-## 开发指南
-
-### 添加新功能
-
-1. **后端添加 API**
-   - 在 `backend/module/` 创建数据模型
-   - 在 `backend/routes/` 创建路由
-   - 在 `backend/app.js` 注册路由
-
-2. **前端添加页面**
-   - 在 `frontend/src/views/` 创建页面组件
-   - 在 `frontend/src/api/` 创建 API 接口
-   - 在 `frontend/src/router/` 添加路由
-
-### 代码规范
-
-- 使用 ESLint 进行代码检查
-- 遵循 Vue 3 Composition API 规范
-- 使用 TypeScript 类型定义
-- 组件命名使用 PascalCase
-- API 接口使用 camelCase
-
-## 常见问题
-
-### 1. 无法连接到数据库
-
-确认 MongoDB 服务已启动：
-```bash
-# Windows
-net start MongoDB
-
-# macOS/Linux
-sudo systemctl start mongodb
-```
-
-### 2. 前端无法连接后端
-
-- 检查后端服务是否运行在 `http://localhost:3000`
-- 确认 CORS 配置正确
-- 检查防火墙设置
-
-### 3. WebSocket 连接失败
-
-- 确认后端 Socket.IO 正常运行
-- 检查前端 WebSocket URL 配置
-- 查看浏览器控制台错误信息
-
-## 性能优化
-
-- 前端使用代码分割和懒加载
-- 后端使用 MongoDB 索引优化查询
-- 使用 Redis 缓存热点数据（可选）
-- 启用 gzip 压缩
-- 使用 CDN 加速静态资源
-
-## 安全性
-
-- 使用 HTTPS 加密传输
-- 实施 CORS 访问控制
-- 输入数据验证和过滤
-- 防止 SQL/NoSQL 注入
-- 定期更新依赖包
-
-## 监控和日志
-
-- 使用 PM2 进行进程管理和监控
-- 使用 Morgan 记录 HTTP 请求
-- 使用 MongoDB 慢查询日志
-- 实施应用性能监控（APM）
-
-## 贡献指南
-
-我们欢迎所有形式的贡献！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+| 文档 | 说明 |
+|---|---|
+| `README.md` | 项目说明与快速开始 |
+| `DESIGN.md` | UI 设计规范（Vercel 极简风格） |
+| `BUGS.md` | 已知问题与修复记录 |
 
 ## 许可证
 
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 联系方式
-
-- 项目地址: https://github.com/zephyrnan/Intelligent-lamp-post-monitoring-system
-- 提交 Issue: https://github.com/zephyrnan/Intelligent-lamp-post-monitoring-system/issues
-
-## 致谢
-
-感谢所有为这个项目做出贡献的开发者！
-
-## 更新日志
-
-### v1.0.0 (2024-01-XX)
-
-**新增功能**
-- ✨ 实时监控系统
-- ✨ 视频监控功能
-- ✨ 人员检测功能
-- ✨ 报警管理系统
-- ✨ 历史数据分析
-- ✨ 设备远程控制
-- ✨ WebSocket 实时通信
-
-**技术栈**
-- 前端: Vue 3 + TypeScript + Vite
-- 后端: Node.js + Express + MongoDB
-- 实时通信: Socket.IO
-- 数据可视化: ECharts
-
----
-
-**注**: 详细的功能说明和使用指南请查看 [frontend/README.md](frontend/README.md) 和 [backend/README.md](backend/README.md)
+MIT License

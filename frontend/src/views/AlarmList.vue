@@ -166,9 +166,10 @@ const alarmStore = useAlarmStore()
 const statusFilter = ref('')
 const levelFilter = ref('')
 const typeFilter = ref('')
+// 设置更大的时间范围以包含所有数据（从2025-01-01到未来一年）
 const timeRange = ref<[string, string]>([
-  new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  new Date().toISOString()
+  new Date('2025-01-01').toISOString(),
+  new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
 ])
 const currentPage = ref(1)
 const pageSize = ref(20)
@@ -318,7 +319,7 @@ function formatTime(time: string): string {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--space-md);
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.3s ease;
 }
 
 .page-header {
@@ -328,44 +329,20 @@ function formatTime(time: string): string {
   margin-bottom: var(--space-2xl);
   padding: var(--space-xl);
   background: var(--bg-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  transition: all 0.3s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-2xl);
+    border-color: var(--border-medium);
   }
 
   .header-content {
-    position: relative;
-    z-index: 1;
-
     h2 {
       margin: 0 0 var(--space-sm) 0;
       font-size: 28px;
       font-weight: 700;
       color: var(--text-primary);
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
       line-height: 1.2;
     }
 
@@ -382,14 +359,11 @@ function formatTime(time: string): string {
     display: flex;
     gap: var(--space-md);
     align-items: center;
-    position: relative;
-    z-index: 1;
 
     .el-select {
       :deep(.el-select__wrapper) {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background: transparent;
+        border: 1px solid var(--border-light);
         transition: all 0.3s ease;
 
         &:hover {
@@ -398,21 +372,19 @@ function formatTime(time: string): string {
 
         &.is-focus {
           border-color: var(--primary-color);
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
       }
     }
 
     .el-button {
-      background: var(--gradient-primary);
+      background: var(--primary-color);
       border: none;
       padding: var(--space-sm) var(--space-lg);
       font-weight: 600;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
 
       &:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: var(--shadow-lg);
+        border-color: var(--border-medium);
       }
     }
   }
@@ -423,40 +395,22 @@ function formatTime(time: string): string {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
-  animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  animation: fadeInUp 0.3s ease 0.1s both;
 }
 
 .alarm-table {
   background: var(--bg-primary);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   padding: var(--space-xl);
-  box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-light);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  animation: fadeInUp 0.3s ease 0.2s both;
 
   .el-table {
-    position: relative;
-    z-index: 1;
     background: transparent;
 
     :deep(.el-table__header-wrapper) {
       .el-table__header {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        background: var(--bg-hover);
 
         th {
           background: transparent;
@@ -481,13 +435,12 @@ function formatTime(time: string): string {
           cursor: pointer;
 
           &:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
-            transform: scale(1.01);
-            box-shadow: var(--shadow-sm);
+            background: var(--bg-hover);
+            border-color: var(--border-medium);
           }
 
           td {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-light);
             padding: var(--space-md) var(--space-sm);
 
             .cell {
@@ -503,22 +456,22 @@ function formatTime(time: string): string {
       padding: var(--space-xs) var(--space-sm);
       border-radius: var(--radius-md);
       font-weight: 600;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
 
       &.el-button--small {
         font-size: 12px;
 
         &:hover {
-          transform: translateY(-1px) scale(1.05);
+          border-color: var(--border-medium);
         }
       }
 
       &.el-button--success {
-        background: var(--gradient-success);
+        background: var(--success-color);
         border: none;
 
         &:hover {
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          border-color: var(--border-medium);
         }
       }
     }
@@ -530,23 +483,23 @@ function formatTime(time: string): string {
       border: none;
 
       &.el-tag--danger {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%);
-        color: white;
+        background: rgba(238, 0, 0, 0.08);
+        color: var(--danger-color);
       }
 
       &.el-tag--warning {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
-        color: white;
+        background: rgba(245, 166, 35, 0.1);
+        color: var(--warning-color);
       }
 
       &.el-tag--success {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
-        color: white;
+        background: rgba(80, 227, 194, 0.1);
+        color: var(--success-color);
       }
 
       &.el-tag--info {
-        background: linear-gradient(135deg, rgba(107, 114, 128, 0.9) 0%, rgba(75, 85, 99, 0.9) 100%);
-        color: white;
+        background: rgba(136, 136, 136, 0.1);
+        color: var(--text-secondary);
       }
     }
   }
@@ -557,27 +510,25 @@ function formatTime(time: string): string {
   justify-content: center;
   margin-top: var(--space-xl);
   padding-top: var(--space-xl);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  z-index: 1;
+  border-top: 1px solid var(--border-light);
 
   :deep(.el-pagination) {
     .el-pager li {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: transparent;
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       margin: 0 2px;
       transition: all 0.3s ease;
       color: var(--text-primary);
 
       &:hover {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
-        transform: scale(1.1);
+        border-color: var(--primary-color);
       }
 
       &.is-active {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
         border-color: var(--primary-color);
       }
@@ -585,15 +536,16 @@ function formatTime(time: string): string {
 
     .btn-prev,
     .btn-next {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: transparent;
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       transition: all 0.3s ease;
       color: var(--text-primary);
 
       &:hover {
-        background: var(--gradient-primary);
+        background: var(--primary-color);
         color: white;
+        border-color: var(--primary-color);
       }
     }
 

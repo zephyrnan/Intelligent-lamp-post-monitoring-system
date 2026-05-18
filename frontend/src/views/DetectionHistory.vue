@@ -168,7 +168,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { Refresh, Clock, Picture, Search, User, View, Delete } from '@element-plus/icons-vue'
+import { Refresh, Clock, Search, User, View, Delete } from '@element-plus/icons-vue'
 import { detectionApi, type PersonDetection } from '@/api/detectionApi'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -305,21 +305,21 @@ function formatTime(time: string): string {
   align-items: flex-start;
   margin-bottom: 32px;
   padding: 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
 
   .header-content {
     h2 {
       margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
 
     p {
       margin: 0;
-      color: #606266;
+      color: var(--text-secondary);
       font-size: 14px;
     }
   }
@@ -332,11 +332,11 @@ function formatTime(time: string): string {
 }
 
 .detection-table-container {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 
   .detections-cell {
     display: flex;
@@ -351,7 +351,7 @@ function formatTime(time: string): string {
 
       .detection-label {
         font-size: 13px;
-        color: #606266;
+        color: var(--text-secondary);
         min-width: 60px;
         text-transform: capitalize;
       }
@@ -364,7 +364,7 @@ function formatTime(time: string): string {
     justify-content: center;
     gap: 6px;
     font-size: 14px;
-    color: #606266;
+    color: var(--text-secondary);
 
     span {
       white-space: nowrap;
@@ -380,7 +380,7 @@ function formatTime(time: string): string {
   }
 
   .text-placeholder {
-    color: #909399;
+    color: var(--text-tertiary);
     font-size: 13px;
   }
 }

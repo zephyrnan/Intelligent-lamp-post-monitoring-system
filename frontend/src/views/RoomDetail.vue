@@ -88,16 +88,6 @@
 
           <div class="sensor-item">
             <div class="sensor-label">
-              <el-icon><DeleteFilled /></el-icon>
-              <span>水位</span>
-            </div>
-            <div class="sensor-value" :class="getWaterClass(currentSensorData.water)">
-              {{ currentSensorData.water }}
-            </div>
-          </div>
-
-          <div class="sensor-item">
-            <div class="sensor-label">
               <el-icon><Sunny /></el-icon>
               <span>光照强度 (Lux)</span>
             </div>
@@ -133,18 +123,6 @@
             </div>
             <div class="sensor-value">
               {{ currentSensorData.bv }}
-            </div>
-          </div>
-
-          <div class="sensor-item full-width">
-            <div class="sensor-label">
-              <el-icon><Bell /></el-icon>
-              <span>报警状态</span>
-            </div>
-            <div class="sensor-value">
-              <el-tag :type="getWarnType(currentSensorData.warn)" size="large">
-                {{ getWarnLabel(currentSensorData.warn) }}
-              </el-tag>
             </div>
           </div>
         </div>
@@ -202,13 +180,13 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   ArrowLeft, Clock, Refresh, TrendCharts, Drizzling,
-  Sunny, Lightning, Odometer, Reading, Warning, Bell, DeleteFilled, User
+  Sunny, Lightning, Odometer, Reading, Warning, User
 } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import { useRoomStore, useWebSocketStore } from '@/stores'
 import WebSocketVideoStream from '@/components/WebSocketVideoStream.vue'
 import DeviceControl from '@/components/common/DeviceControl.vue'
-import type { Room, SensorData } from '@/types'
+import type { Room, SensorData, SensorThresholdConfig } from '@/types'
 import { realRoomApi, detectionApi } from '@/api'
 import { useRouter } from 'vue-router'
 
@@ -222,7 +200,6 @@ const roomStore = useRoomStore()
 const wsStore = useWebSocketStore()
 const router = useRouter()
 
-const chartsLoading = ref(false)
 const sensorData = ref<SensorData | null>(null)
 const detecting = ref(false)
 
@@ -282,11 +259,17 @@ onMounted(() => {
   setupWebSocketListeners()
 })
 
+// 竞态防护：记录当前请求的 roomId，丢弃过期响应
+let fetchRequestId = 0
+
 // 监听路由参数变化，当ID改变时重新获取数据
 watch(
   () => props.id,
   (newId, oldId) => {
     if (newId !== oldId) {
+      wsStore.leaveRoom(oldId)
+      wsStore.off('room_data_update')
+      wsStore.off('room_status_update')
       fetchRoomData()
     }
   }
@@ -294,19 +277,23 @@ watch(
 
 onUnmounted(() => {
   wsStore.leaveRoom(props.id)
+  wsStore.off('room_data_update')
+  wsStore.off('room_status_update')
 })
 
 async function fetchRoomData() {
+  const requestId = ++fetchRequestId
   try {
-    console.log('Fetching room data for ID:', props.id)
     await roomStore.fetchRoomById(props.id)
-    console.log('Room data fetched:', roomStore.currentRoom)
 
-    // 获取实时传感器数据
+    // 丢弃过期响应
+    if (requestId !== fetchRequestId) return
+
     const sensorResponse = await realRoomApi.getRealtimeSensorData(props.id)
+    if (requestId !== fetchRequestId) return
+
     if (sensorResponse.code === 200) {
       sensorData.value = sensorResponse.data
-      // 检测报警并推送通知
       checkAndNotifyAlarm(sensorResponse.data)
     }
 
@@ -318,7 +305,76 @@ async function fetchRoomData() {
   }
 }
 
-// 检测报警并推送通知
+// 泛型传感器阈值配置表
+const sensorThresholds: SensorThresholdConfig = {
+  temperature: {
+    type: 'temperature',
+    label: '温度',
+    unit: '°C',
+    levels: {
+      critical: { min: 18, max: 28 },   // 超出此范围为 critical
+      high: { min: 20, max: 26 },        // 超出此范围为 high
+      medium: { min: 22, max: 25 },      // 超出此范围为 medium
+      low: {}                             // 其余为 low
+    }
+  },
+  humidity: {
+    type: 'humidity',
+    label: '湿度',
+    unit: '%',
+    levels: {
+      critical: { min: 30, max: 80 },
+      high: { min: 40, max: 70 },
+      medium: { min: 45, max: 65 },
+      low: {}
+    }
+  },
+  smoke: {
+    type: 'smoke',
+    label: '烟雾浓度',
+    unit: '',
+    levels: {
+      critical: { max: 50 },   // 超过 50 为 critical
+      high: { max: 30 },       // 超过 30 为 high
+      medium: { max: 20 },     // 超过 20 为 medium
+      low: {}
+    }
+  },
+  water: {
+    type: 'water',
+    label: '水位',
+    unit: '',
+    levels: {
+      critical: { max: 80 },
+      high: { max: 60 },
+      medium: { max: 40 },
+      low: {}
+    }
+  }
+}
+
+// 根据阈值配置判断单个传感器的告警级别
+function evaluateSensorLevel(
+  value: number,
+  threshold: SensorThresholdConfig[keyof SensorThresholdConfig]
+): 'critical' | 'high' | 'medium' | 'low' | null {
+  const { levels } = threshold
+  const orderedLevels: Array<'critical' | 'high' | 'medium'> = ['critical', 'high', 'medium']
+
+  for (const level of orderedLevels) {
+    const range = levels[level]
+    if (range.min !== undefined && range.max !== undefined) {
+      if (value < range.min || value > range.max) return level
+    } else if (range.max !== undefined) {
+      if (value > range.max) return level
+    } else if (range.min !== undefined) {
+      if (value < range.min) return level
+    }
+  }
+  return null
+}
+
+// 检测报警并推送通知（基于泛型阈值配置）
 function checkAndNotifyAlarm(data: SensorData) {
   const warnLevel = Number(data.warn) || 0
 
@@ -334,31 +390,32 @@ function checkAndNotifyAlarm(data: SensorData) {
   if (warnLevel === 1) {
     notificationType = 'warning'
     title = '⚠️ 警告'
-    message = `${roomStore.currentRoom?.name || '房间'} 检测到异常情况，请注意查看！`
+    message = `${roomStore.currentRoom?.name || '灯杆'} 检测到异常情况，请注意查看！`
   } else if (warnLevel === 2) {
     notificationType = 'error'
     title = '🚨 严重报警'
-    message = `${roomStore.currentRoom?.name || '房间'} 检测到严重异常，请立即处理！`
+    message = `${roomStore.currentRoom?.name || '灯杆'} 检测到严重异常，请立即处理！`
   }
 
-  // 添加具体的传感器数据信息
+  // 基于阈值配置逐项检查各传感器
+  const sensorValues: Record<string, number> = {
+    temperature: Number(data.temperature) || 0,
+    humidity: Number(data.hum) || 0,
+    smoke: Number(data.smokeLevel) || 0,
+    water: Number(data.water) || 0
+  }
+
   const details: string[] = []
-  const temp = Number(data.temperature) || 0
-  const hum = Number(data.hum) || 0
-  const smoke = Number(data.smokeLevel) || 0
-  const water = Number(data.water) || 0
 
-  if (temp < 18 || temp > 28) {
-    details.push(`温度: ${temp}°C ${temp < 18 ? '(偏低)' : '(偏高)'}`)
-  }
-  if (hum < 30 || hum > 80) {
-    details.push(`湿度: ${hum}% ${hum < 30 ? '(偏低)' : '(偏高)'}`)
-  }
-  if (smoke > 30) {
-    details.push(`烟雾浓度: ${smoke} ${smoke > 50 ? '(严重)' : '(警告)'}`)
-  }
-  if (water > 60) {
-    details.push(`水位: ${water} ${water > 80 ? '(严重)' : '(警告)'}`)
+  for (const [sensorType, value] of Object.entries(sensorValues)) {
+    const config = sensorThresholds[sensorType as keyof SensorThresholdConfig]
+    if (!config) continue
+
+    const level = evaluateSensorLevel(value, config)
+    if (level) {
+      const levelLabel = { critical: '严重', high: '警告', medium: '注意', low: '提示' }[level]
+      details.push(`${config.label}: ${value}${config.unit} (${levelLabel})`)
+    }
   }
 
   if (details.length > 0) {
@@ -370,9 +427,9 @@ function checkAndNotifyAlarm(data: SensorData) {
     type: notificationType,
     title: title,
     message: message,
-    duration: 3000, // 3秒后自动关闭
+    duration: 3000,
     dangerouslyUseHTMLString: false,
-    showClose: true, // 显示关闭按钮，可手动关闭
+    showClose: true,
     position: 'top-right',
     offset: 80
   })
@@ -412,12 +469,6 @@ function getTemperatureClass(temp: number): string {
 function getHumidityClass(humidity: number): string {
   if (humidity < 30 || humidity > 80) return 'value-error'
   if (humidity < 40 || humidity > 70) return 'value-warning'
-  return 'value-normal'
-}
-
-function getWaterClass(water: number): string {
-  if (water > 80) return 'value-error'
-  if (water > 60) return 'value-warning'
   return 'value-normal'
 }
 
@@ -508,10 +559,10 @@ async function handlePersonDetection() {
 }
 
 .skeleton-content {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 }
 
 .page-header {
@@ -520,9 +571,9 @@ async function handlePersonDetection() {
   align-items: flex-start;
   margin-bottom: 24px;
   padding: 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
 
   .header-left {
     display: flex;
@@ -533,7 +584,7 @@ async function handlePersonDetection() {
       margin: 0 0 12px 0;
       font-size: 28px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
 
     .room-meta {
@@ -545,7 +596,7 @@ async function handlePersonDetection() {
         display: flex;
         align-items: center;
         gap: 4px;
-        color: #606266;
+        color: var(--text-secondary);
         font-size: 14px;
       }
     }
@@ -553,11 +604,11 @@ async function handlePersonDetection() {
 }
 
 .sensor-data-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 
   .section-header {
     display: flex;
@@ -565,13 +616,13 @@ async function handlePersonDetection() {
     align-items: center;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-light);
 
     h2 {
       margin: 0;
       font-size: 20px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 
@@ -585,14 +636,13 @@ async function handlePersonDetection() {
       justify-content: space-between;
       align-items: center;
       padding: 16px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      background: var(--bg-secondary);
       border-radius: 8px;
-      border: 1px solid #e8e8e8;
+      border: 1px solid var(--border-light);
       transition: all 0.3s ease;
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--border-medium);
       }
 
       &.full-width {
@@ -604,30 +654,30 @@ async function handlePersonDetection() {
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        color: #606266;
+        color: var(--text-secondary);
         font-weight: 500;
 
         .el-icon {
           font-size: 18px;
-          color: #409eff;
+          color: var(--primary-color);
         }
       }
 
       .sensor-value {
         font-size: 18px;
         font-weight: 600;
-        color: #303133;
+        color: var(--text-primary);
 
         &.value-normal {
-          color: #67c23a;
+          color: var(--success-color);
         }
 
         &.value-warning {
-          color: #e6a23c;
+          color: var(--warning-color);
         }
 
         &.value-error {
-          color: #f56c6c;
+          color: var(--error-color);
         }
       }
     }

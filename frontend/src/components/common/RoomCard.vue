@@ -113,84 +113,34 @@ function formatTime(time: string): string {
 
 <style scoped lang="scss">
 .room-card {
-  background: white;
-  border-radius: var(--radius-xl);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: var(--space-lg);
-  box-shadow: var(--shadow-lg);
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border-top: 4px solid;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
+  transition: border-color 0.15s ease;
+  border: 1px solid var(--border-light);
 
   &:hover {
-    box-shadow: var(--shadow-2xl);
-    transform: translateY(-8px) scale(1.02);
-
-    &::before {
-      opacity: 1;
-    }
+    border-color: var(--primary-color);
   }
 
-  &--normal {
-    border-color: var(--success-color);
-
-    &:hover {
-      box-shadow: 0 20px 40px -10px rgba(103, 194, 58, 0.3);
-    }
-  }
-
-  &--warning {
-    border-color: var(--warning-color);
-
-    &:hover {
-      box-shadow: 0 20px 40px -10px rgba(230, 162, 60, 0.3);
-    }
-  }
-
-  &--error {
-    border-color: var(--error-color);
-
-    &:hover {
-      box-shadow: 0 20px 40px -10px rgba(245, 108, 108, 0.3);
-    }
-  }
-
-  &--offline {
-    border-color: var(--info-color);
-    opacity: 0.8;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
+  &--normal {}
+  &--warning {}
+  &--error {}
+  &--offline { opacity: 0.7; }
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
   }
 
   &__name {
     margin: 0 0 4px 0;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     color: var(--text-primary);
-    letter-spacing: -0.5px;
   }
 
   &__location {
@@ -198,113 +148,59 @@ function formatTime(time: string): string {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-weight: 500;
+    font-size: 12px;
+    color: var(--text-tertiary);
   }
 
   &__metrics {
     display: grid;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
   }
 
   &__metric {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    padding: var(--space-md);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(247, 250, 252, 0.8) 100%);
-    border-radius: var(--radius-lg);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
 
     &:hover {
-      transform: translateX(4px);
-      background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(247, 250, 252, 1) 100%);
-      box-shadow: var(--shadow-md);
+      background: var(--bg-tertiary);
     }
   }
 
   &__metric-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    transition: all 0.3s ease;
 
-    &::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100%;
-      height: 100%;
-      border-radius: inherit;
-      transform: translate(-50%, -50%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    &.temp {
-      background: linear-gradient(135deg, rgba(245, 108, 108, 0.15) 0%, rgba(245, 108, 108, 0.05) 100%);
-      color: #f56c6c;
-
-      &::after {
-        background: radial-gradient(circle, rgba(245, 108, 108, 0.2) 0%, transparent 70%);
-      }
-    }
-
-    &.humidity {
-      background: linear-gradient(135deg, rgba(64, 158, 255, 0.15) 0%, rgba(64, 158, 255, 0.05) 100%);
-      color: #409eff;
-
-      &::after {
-        background: radial-gradient(circle, rgba(64, 158, 255, 0.2) 0%, transparent 70%);
-      }
-    }
-
-    &.air {
-      background: linear-gradient(135deg, rgba(103, 194, 58, 0.15) 0%, rgba(103, 194, 58, 0.05) 100%);
-      color: #67c23a;
-
-      &::after {
-        background: radial-gradient(circle, rgba(103, 194, 58, 0.2) 0%, transparent 70%);
-      }
-    }
-
-    .room-card__metric:hover & {
-      transform: scale(1.1) rotate(5deg);
-
-      &::after {
-        opacity: 1;
-      }
-    }
+    &.temp { background: rgba(238, 0, 0, 0.06); color: var(--error-color); }
+    &.humidity { background: rgba(0, 112, 243, 0.08); color: var(--primary-color); }
+    &.air { background: rgba(80, 227, 194, 0.1); color: var(--success-color); }
   }
 
   &__metric-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
   }
 
   &__metric-value {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--text-primary);
-    letter-spacing: -0.5px;
   }
 
   &__metric-label {
     font-size: 12px;
     color: var(--text-tertiary);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
 
   &__footer {
@@ -312,9 +208,9 @@ function formatTime(time: string): string {
     justify-content: space-between;
     align-items: center;
     font-size: 12px;
-    color: var(--text-secondary);
-    padding-top: var(--space-md);
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--text-tertiary);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
   }
 
   &__devices,
@@ -322,7 +218,6 @@ function formatTime(time: string): string {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-weight: 500;
   }
 }
 
@@ -336,16 +231,16 @@ function formatTime(time: string): string {
     }
 
     &__name {
-      font-size: 18px;
+      font-size: 15px;
     }
 
     &__metric-icon {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
     }
 
     &__metric-value {
-      font-size: 16px;
+      font-size: 14px;
     }
 
     &__footer {

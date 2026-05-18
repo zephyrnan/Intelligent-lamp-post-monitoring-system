@@ -52,8 +52,8 @@ let PersonDetectionSchema = new mongoose.Schema({
 });
 
 // 创建索引以提高查询性能
+// detectionId 已通过 unique: true 自动创建索引
 PersonDetectionSchema.index({ roomId: 1, timestamp: -1 });
-PersonDetectionSchema.index({ detectionId: 1 });
 PersonDetectionSchema.index({ date: 1 });
 
 module.exports = mongoose.model('PersonDetection', PersonDetectionSchema);

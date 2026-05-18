@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Sunny } from '@element-plus/icons-vue'
 import { realRoomApi } from '@/api'
@@ -93,23 +93,19 @@ async function handleDeviceControl(value: boolean) {
   }
 }
 
-// 监听 roomId 变化
+// 监听 roomId 变化（immediate: true 替代 onMounted 中的重复调用）
 watch(() => props.roomId, () => {
   fetchDeviceStatus()
 }, { immediate: true })
-
-onMounted(() => {
-  fetchDeviceStatus()
-})
 </script>
 
 <style scoped lang="scss">
 .device-control-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
 
   .section-header {
     display: flex;
@@ -123,7 +119,7 @@ onMounted(() => {
       margin: 0;
       font-size: 20px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
     }
   }
 
@@ -137,15 +133,10 @@ onMounted(() => {
       justify-content: space-between;
       align-items: center;
       padding: 20px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-      border-radius: 12px;
-      border: 1px solid #e8e8e8;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
       transition: all 0.3s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      }
 
       .device-info {
         display: flex;
@@ -159,7 +150,7 @@ onMounted(() => {
           align-items: center;
           justify-content: center;
           background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-          border-radius: 12px;
+          border-radius: var(--radius-lg);
           color: #2196f3;
           transition: all 0.3s ease;
 
@@ -175,13 +166,13 @@ onMounted(() => {
             margin: 0 0 8px 0;
             font-size: 18px;
             font-weight: 600;
-            color: #303133;
+            color: var(--text-primary);
           }
 
           .device-description {
             margin: 0;
             font-size: 14px;
-            color: #909399;
+            color: var(--text-tertiary);
           }
         }
       }

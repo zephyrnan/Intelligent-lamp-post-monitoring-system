@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 import { io, Socket } from 'socket.io-client'
 import { ElMessage, ElNotification } from 'element-plus'
 import type { SensorData, AlarmInfo } from '@/types'
@@ -59,26 +59,40 @@ interface WebSocketConfig {
 }
 
 export const useWebSocketStore = defineStore('websocket', () => {
-  const socket = ref<Socket | null>(null)
+  const socket = shallowRef<Socket | null>(null)
   const connectionStatus = ref<'connected' | 'disconnected' | 'reconnecting'>('disconnected')
   const reconnectAttempts = ref(0)
   const ping = ref(0)
   const isConnected = computed(() => connectionStatus.value === 'connected')
-  const connected = computed(() => connectionStatus.value === 'connected')
 
   const config: WebSocketConfig = {
     //url: 'ws://192.168.3.2:8032',
     url: 'http://localhost:3000',
     autoReconnect: true,
-    reconnectInterval: 5000,
+    reconnectInterval: 1000, // 基础重连间隔（指数退避起始值）
     maxReconnectAttempts: 10,
     timeout: 10000,
     enableHeartbeat: true,
     heartbeatInterval: 30000
   }
 
+  // 指数退避重连最大延迟
+  const MAX_RECONNECT_DELAY = 30000
+
   let heartbeatTimer: number | null = null
-  const eventListeners = ref<Map<string, Function[]>>(new Map())
+  let reconnectTimer: number | null = null
+  const eventListeners = new Map<string, Function[]>()
+
+  // 计算指数退避延迟
+  function getReconnectDelay(attempt: number): number {
+    const delay = Math.min(
+      config.reconnectInterval * Math.pow(2, attempt),
+      MAX_RECONNECT_DELAY
+    )
+    // 添加 ±20% 的抖动，避免多个客户端同时重连
+    const jitter = delay * 0.2 * (Math.random() * 2 - 1)
+    return Math.round(delay + jitter)
+  }
 
   // 连接WebSocket
   function connect(): Promise<void> {
@@ -89,9 +103,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
           transports: ['websocket'],
           upgrade: false,
           autoConnect: true,
-          reconnection: config.autoReconnect,
-          reconnectionDelay: config.reconnectInterval,
-          reconnectionAttempts: config.maxReconnectAttempts
+          reconnection: false // 禁用内置重连，使用自定义指数退避策略
         })
 
         // 连接成功
@@ -112,6 +124,19 @@ export const useWebSocketStore = defineStore('websocket', () => {
           if (reconnectAttempts.value === 0) {
             ElMessage.error('实时连接失败，正在尝试重连...')
           }
+
+          // 使用指数退避策略自动重连
+          if (config.autoReconnect && reconnectAttempts.value < config.maxReconnectAttempts) {
+            scheduleReconnect()
+          } else if (reconnectAttempts.value >= config.maxReconnectAttempts) {
+            ElNotification({
+              title: '连接失败',
+              message: '无法建立实时连接，请检查网络设置',
+              type: 'error',
+              duration: 0
+            })
+          }
+
           reject(error)
         })
 
@@ -121,38 +146,18 @@ export const useWebSocketStore = defineStore('websocket', () => {
           connectionStatus.value = 'disconnected'
           stopHeartbeat()
 
-          if (reason === 'io server disconnect') {
-            reconnect()
+          if (reason === 'io server disconnect' || reason === 'transport close') {
+            // 服务端断开或传输关闭，使用指数退避重连
+            if (config.autoReconnect) {
+              scheduleReconnect()
+            }
           }
         })
 
-        // 重连中
-        socket.value.on('reconnect_attempt', (attemptNumber) => {
-          console.log(`WebSocket重连尝试 ${attemptNumber}/${config.maxReconnectAttempts}`)
-          connectionStatus.value = 'reconnecting'
-          reconnectAttempts.value = attemptNumber
-        })
-
-        // 重连成功
-        socket.value.on('reconnect', (attemptNumber) => {
-          console.log(`WebSocket重连成功 (尝试${attemptNumber}次)`)
-          ElNotification({
-            title: '连接恢复',
-            message: `实时连接已恢复 (尝试${attemptNumber}次)`,
-            type: 'success',
-            duration: 3000
-          })
-        })
-
-        // 重连失败
-        socket.value.on('reconnect_failed', () => {
-          console.error('WebSocket重连失败，已达到最大重试次数')
-          ElNotification({
-            title: '连接失败',
-            message: '无法建立实时连接，请检查网络设置',
-            type: 'error',
-            duration: 0
-          })
+        // 监听心跳响应（注册一次，避免重复绑定）
+        socket.value.on('pong', (timestamp: number) => {
+          ping.value = Date.now() - timestamp
+          console.log(`WebSocket心跳延迟: ${ping.value}ms`)
         })
 
         // 注册业务事件监听器
@@ -169,11 +174,43 @@ export const useWebSocketStore = defineStore('websocket', () => {
   function disconnect() {
     if (socket.value) {
       stopHeartbeat()
+      cancelReconnect()
       socket.value.disconnect()
       socket.value = null
       connectionStatus.value = 'disconnected'
-      eventListeners.value.clear()
+      reconnectAttempts.value = 0
+      eventListeners.clear()
       console.log('WebSocket连接已断开')
+    }
+  }
+
+  // 指数退避重连调度
+  function scheduleReconnect() {
+    if (reconnectAttempts.value >= config.maxReconnectAttempts) {
+      console.error('WebSocket重连失败，已达到最大重试次数')
+      connectionStatus.value = 'disconnected'
+      return
+    }
+
+    const delay = getReconnectDelay(reconnectAttempts.value)
+    reconnectAttempts.value++
+    connectionStatus.value = 'reconnecting'
+    console.log(
+      `WebSocket指数退避重连：第${reconnectAttempts.value}/${config.maxReconnectAttempts}次，延迟${delay}ms`
+    )
+
+    reconnectTimer = window.setTimeout(() => {
+      if (socket.value) {
+        socket.value.connect()
+      }
+    }, delay)
+  }
+
+  // 取消重连定时器
+  function cancelReconnect() {
+    if (reconnectTimer) {
+      window.clearTimeout(reconnectTimer)
+      reconnectTimer = null
     }
   }
 
@@ -181,6 +218,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
   function reconnect() {
     if (socket.value && connectionStatus.value !== 'connected') {
       console.log('手动重连WebSocket...')
+      cancelReconnect()
+      reconnectAttempts.value = 0
       socket.value.connect()
     }
   }
@@ -196,10 +235,10 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   // 监听事件
   function on<K extends keyof WebSocketEvents>(event: K | string, callback: Function) {
-    if (!eventListeners.value.has(event)) {
-      eventListeners.value.set(event, [])
+    if (!eventListeners.has(event)) {
+      eventListeners.set(event, [])
     }
-    eventListeners.value.get(event)!.push(callback)
+    eventListeners.get(event)!.push(callback)
 
     // 如果socket已连接，立即注册监听器
     if (socket.value) {
@@ -210,7 +249,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   // 移除事件监听器
   function off<K extends keyof WebSocketEvents>(event: K | string, callback?: Function) {
     if (callback) {
-      const listeners = eventListeners.value.get(event) || []
+      const listeners = eventListeners.get(event) || []
       const index = listeners.indexOf(callback)
       if (index !== -1) {
         listeners.splice(index, 1)
@@ -220,7 +259,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       }
     } else {
       // 移除所有监听器
-      eventListeners.value.delete(event)
+      eventListeners.delete(event)
       if (socket.value) {
         socket.value.off(event)
       }
@@ -232,7 +271,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     if (!socket.value) return
 
     // 为已注册的事件监听器重新绑定
-    eventListeners.value.forEach((callbacks, event) => {
+    eventListeners.forEach((callbacks, event) => {
       callbacks.forEach(callback => {
         socket.value!.on(event, callback as any)
       })
@@ -248,12 +287,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
         socket.value.emit('ping', Date.now())
       }
     }, config.heartbeatInterval)
-
-    // 监听心跳响应
-    socket.value?.on('pong', (timestamp: number) => {
-      ping.value = Date.now() - timestamp
-      console.log(`WebSocket心跳延迟: ${ping.value}ms`)
-    })
   }
 
   // 停止心跳
@@ -339,7 +372,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     reconnectAttempts,
     ping,
     isConnected,
-    connected,
     connect,
     disconnect,
     reconnect,

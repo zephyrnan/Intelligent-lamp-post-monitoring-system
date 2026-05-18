@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const ws = useWebSocketStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const connected = ws.connected
+const connected = ws.isConnected
 
 function drawFrameFromBase64(base64: string) {
   const canvas = canvasRef.value
@@ -71,7 +71,10 @@ onUnmounted(() => {
 })
 
 watch(() => props.roomId, (newId, oldId) => {
-  if (oldId) ws.off(`video_frame_${oldId}`, handler)
+  if (oldId) {
+    ws.off(`video_frame_${oldId}`, handler)
+    ws.leaveRoom(oldId)
+  }
   ws.on(`video_frame_${newId}`, handler)
   ws.joinRoom(newId)
 })

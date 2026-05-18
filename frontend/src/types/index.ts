@@ -182,3 +182,30 @@ export interface VideoStream {
   streamType?: 'http' | 'websocket'
   wsUrl?: string
 }
+
+// ========== 泛型传感器阈值配置 ==========
+
+// 传感器类型枚举
+export type SensorType = 'temperature' | 'humidity' | 'smoke' | 'water'
+
+// 告警级别
+export type AlarmLevel = 'critical' | 'high' | 'medium' | 'low'
+
+// 单个阈值范围
+export interface ThresholdRange {
+  min?: number
+  max?: number
+}
+
+// 泛型传感器阈值配置
+export interface SensorThreshold<T extends SensorType = SensorType> {
+  type: T
+  label: string
+  unit: string
+  levels: Record<AlarmLevel, ThresholdRange>
+}
+
+// 传感器阈值配置表
+export type SensorThresholdConfig = {
+  [K in SensorType]: SensorThreshold<K>
+}

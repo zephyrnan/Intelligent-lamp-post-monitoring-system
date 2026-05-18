@@ -1,15 +1,16 @@
 <template>
-  <div class="chart-container">
+  <div ref="chartWrapperRef" class="chart-container">
     <div class="chart-header">
       <h3 class="chart-title">{{ title }}</h3>
       <div v-if="loading" class="chart-loading">
         <el-icon class="is-loading"><Loading /></el-icon>
       </div>
     </div>
+    <!-- v-if 懒加载：仅当图表进入可视区域后才渲染 -->
     <div class="chart-content" :style="{ height: `${height}px` }">
       <v-chart
-        v-if="!loading && chartData"
-        :option="chartOption"
+        v-if="isVisible && !loading && chartData"
+        :option="throttledChartOption"
         :style="{ width: '100%', height: '100%' }"
         autoresize
       />
@@ -22,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted, shallowRef, watch, markRaw } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, BarChart, PieChart } from 'echarts/charts'
@@ -72,9 +73,47 @@ const props = withDefaults(defineProps<Props>(), {
   showDataZoom: false
 })
 
+// IntersectionObserver 懒加载：仅当图表进入可视区域后才渲染
+const chartWrapperRef = ref<HTMLElement | null>(null)
+const isVisible = ref(false)
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (chartWrapperRef.value) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            isVisible.value = true
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(chartWrapperRef.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+  if (throttleTimer) {
+    clearTimeout(throttleTimer)
+    throttleTimer = null
+  }
+})
+
+// setOption 节流：限制 ECharts 更新频率（200ms）
+const THROTTLE_DELAY = 200
+let throttleTimer: ReturnType<typeof setTimeout> | null = null
+let lastUpdateTime = 0
+const throttledChartOption = shallowRef<any>({})
+
 const chartData = computed(() => {
   if (!props.data) return null
-  return props.data
+  return markRaw(props.data)
 })
 
 const chartOption = computed((): EChartsOption => {
@@ -423,6 +462,25 @@ const chartOption = computed((): EChartsOption => {
 
   return baseOption
 })
+
+// 节流 watch：chartOption 变化时延迟更新，减少 ECharts setOption 调用频率
+watch(
+  () => chartOption.value,
+  (newOption) => {
+    const now = Date.now()
+    if (now - lastUpdateTime >= THROTTLE_DELAY) {
+      throttledChartOption.value = newOption
+      lastUpdateTime = now
+    } else {
+      if (throttleTimer) clearTimeout(throttleTimer)
+      throttleTimer = setTimeout(() => {
+        throttledChartOption.value = chartOption.value
+        lastUpdateTime = Date.now()
+      }, THROTTLE_DELAY - (now - lastUpdateTime))
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="scss">
@@ -435,28 +493,9 @@ const chartOption = computed((): EChartsOption => {
   border: 1px solid var(--border-light);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  backdrop-filter: blur(20px);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
 
   &:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: var(--shadow-2xl);
-
-    .chart-decoration {
-      opacity: 0.8;
-      transform: scale(1.1) rotate(5deg);
-    }
+    border-color: var(--border-medium);
   }
 }
 
@@ -474,10 +513,6 @@ const chartOption = computed((): EChartsOption => {
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   position: relative;
 
   &::after {
@@ -520,7 +555,6 @@ const chartOption = computed((): EChartsOption => {
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
