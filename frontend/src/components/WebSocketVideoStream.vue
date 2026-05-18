@@ -33,26 +33,38 @@ const props = withDefaults(defineProps<Props>(), {
 const ws = useWebSocketStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const connected = ws.isConnected
+let ctx: CanvasRenderingContext2D | null = null
+let alive = true
+let pendingImage: HTMLImageElement | null = null
 
 function drawFrameFromBase64(base64: string) {
+  if (!alive) return
   const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
+  if (!canvas || !ctx) return
+
+  // 取消上一帧的加载，避免旧帧覆盖新帧
+  if (pendingImage) {
+    pendingImage.onload = null
+    pendingImage = null
+  }
+
   const image = new Image()
+  pendingImage = image
   image.onload = () => {
+    if (!alive || !ctx || !canvas) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    // cover style draw
     const ratio = Math.min(canvas.width / image.width, canvas.height / image.height)
     const drawWidth = image.width * ratio
     const drawHeight = image.height * ratio
     const dx = (canvas.width - drawWidth) / 2
     const dy = (canvas.height - drawHeight) / 2
     ctx.drawImage(image, dx, dy, drawWidth, drawHeight)
+    pendingImage = null
   }
   image.src = base64
 }
 
+// 事件名是固定的 'video_frame'，handler 内部按 roomId 过滤
 const handler = (data: { roomId: string; frame: string }) => {
   if (data.roomId === props.roomId) {
     drawFrameFromBase64(data.frame)
@@ -60,22 +72,30 @@ const handler = (data: { roomId: string; frame: string }) => {
 }
 
 onMounted(() => {
-  ws.connect()
-  ws.on(`video_frame_${props.roomId}`, handler)
+  if (canvasRef.value) {
+    ctx = canvasRef.value.getContext('2d')
+  }
+  if (!ws.isConnected) {
+    ws.connect()
+  }
+  ws.on('video_frame', handler)
   ws.joinRoom(props.roomId)
 })
 
 onUnmounted(() => {
-  ws.off(`video_frame_${props.roomId}`, handler)
+  alive = false
+  if (pendingImage) {
+    pendingImage.onload = null
+    pendingImage = null
+  }
+  ws.off('video_frame', handler)
   ws.leaveRoom(props.roomId)
 })
 
 watch(() => props.roomId, (newId, oldId) => {
   if (oldId) {
-    ws.off(`video_frame_${oldId}`, handler)
     ws.leaveRoom(oldId)
   }
-  ws.on(`video_frame_${newId}`, handler)
   ws.joinRoom(newId)
 })
 </script>
