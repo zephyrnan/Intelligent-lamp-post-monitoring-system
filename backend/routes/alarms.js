@@ -130,13 +130,24 @@ router.post('/', async function(req, res, next) {
   }
 });
 
-// 确认报警
+// 确认报警（原子操作，避免 TOCTOU 竞态）
 router.put('/:alarmId/acknowledge', async function(req, res, next) {
   try {
     const { alarmId } = req.params;
     const { acknowledgedBy } = req.body;
 
-    const alarm = await Alarm.findOne({ alarmId });
+    const alarm = await Alarm.findOneAndUpdate(
+      { alarmId },
+      {
+        $set: {
+          status: 'acknowledged',
+          acknowledged: true,
+          acknowledgedBy: acknowledgedBy || 'system',
+          acknowledgedAt: new Date()
+        }
+      },
+      { new: true }
+    );
 
     if (!alarm) {
       return res.status(404).json({
@@ -144,13 +155,6 @@ router.put('/:alarmId/acknowledge', async function(req, res, next) {
         msg: '未找到该报警'
       });
     }
-
-    alarm.status = 'acknowledged';
-    alarm.acknowledged = true;
-    alarm.acknowledgedBy = acknowledgedBy || 'system';
-    alarm.acknowledgedAt = new Date();
-
-    await alarm.save();
 
     res.json({
       code: 200,
@@ -167,12 +171,21 @@ router.put('/:alarmId/acknowledge', async function(req, res, next) {
   }
 });
 
-// 解决报警
+// 解决报警（原子操作）
 router.put('/:alarmId/resolve', async function(req, res, next) {
   try {
     const { alarmId } = req.params;
 
-    const alarm = await Alarm.findOne({ alarmId });
+    const alarm = await Alarm.findOneAndUpdate(
+      { alarmId },
+      {
+        $set: {
+          status: 'resolved',
+          resolvedAt: new Date()
+        }
+      },
+      { new: true }
+    );
 
     if (!alarm) {
       return res.status(404).json({
@@ -180,11 +193,6 @@ router.put('/:alarmId/resolve', async function(req, res, next) {
         msg: '未找到该报警'
       });
     }
-
-    alarm.status = 'resolved';
-    alarm.resolvedAt = new Date();
-
-    await alarm.save();
 
     res.json({
       code: 200,
@@ -201,32 +209,39 @@ router.put('/:alarmId/resolve', async function(req, res, next) {
   }
 });
 
-// 获取报警统计
+// 获取报警统计（聚合管道，单次查询替代 8 次 countDocuments）
 router.get('/stats', async function(req, res, next) {
   try {
-    const total = await Alarm.countDocuments();
-    const active = await Alarm.countDocuments({ status: 'active' });
-    const acknowledged = await Alarm.countDocuments({ status: 'acknowledged' });
-    const resolved = await Alarm.countDocuments({ status: 'resolved' });
+    const [statusStats, levelStats] = await Promise.all([
+      Alarm.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Alarm.aggregate([
+        { $group: { _id: '$level', count: { $sum: 1 } } }
+      ])
+    ]);
 
-    const critical = await Alarm.countDocuments({ level: 'critical' });
-    const high = await Alarm.countDocuments({ level: 'high' });
-    const medium = await Alarm.countDocuments({ level: 'medium' });
-    const low = await Alarm.countDocuments({ level: 'low' });
+    const statusMap = {};
+    statusStats.forEach(s => { statusMap[s._id] = s.count; });
+
+    const levelMap = {};
+    levelStats.forEach(l => { levelMap[l._id] = l.count; });
+
+    const total = Object.values(statusMap).reduce((a, b) => a + b, 0);
 
     res.json({
       code: 200,
       msg: '查询成功',
       data: {
         total,
-        active,
-        acknowledged,
-        resolved,
+        active: statusMap.active || 0,
+        acknowledged: statusMap.acknowledged || 0,
+        resolved: statusMap.resolved || 0,
         byLevel: {
-          critical,
-          high,
-          medium,
-          low
+          critical: levelMap.critical || 0,
+          high: levelMap.high || 0,
+          medium: levelMap.medium || 0,
+          low: levelMap.low || 0
         }
       }
     });

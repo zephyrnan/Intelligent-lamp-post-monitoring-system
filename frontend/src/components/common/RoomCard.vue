@@ -96,6 +96,7 @@ const statusText = computed(() => {
 
 function formatTime(time: string): string {
   const date = new Date(time)
+  if (isNaN(date.getTime())) return '未知时间'
   const now = new Date()
   const diff = now.getTime() - date.getTime()
 

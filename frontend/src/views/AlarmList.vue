@@ -173,6 +173,7 @@ const timeRange = ref<[string, string]>([
 ])
 const currentPage = ref(1)
 const pageSize = ref(20)
+let fetchRequestId = 0
 
 const filterParams = computed(() => ({
   page: currentPage.value,
@@ -189,8 +190,10 @@ onMounted(() => {
 })
 
 async function fetchAlarms() {
+  const requestId = ++fetchRequestId
   try {
     await alarmStore.fetchAlarms(filterParams.value)
+    if (requestId !== fetchRequestId) return
   } catch (error) {
     console.error('Failed to fetch alarms:', error)
   }

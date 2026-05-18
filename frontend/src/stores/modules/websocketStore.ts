@@ -63,6 +63,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const connectionStatus = ref<'connected' | 'disconnected' | 'reconnecting'>('disconnected')
   const reconnectAttempts = ref(0)
   const ping = ref(0)
+  const connectedAt = ref<number | null>(null)
   const isConnected = computed(() => connectionStatus.value === 'connected')
 
   const config: WebSocketConfig = {
@@ -96,6 +97,11 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   // 连接WebSocket
   function connect(): Promise<void> {
+    // 防止并发调用：已连接或正在连接时直接返回
+    if (socket.value && connectionStatus.value !== 'disconnected') {
+      return Promise.resolve()
+    }
+
     return new Promise((resolve, reject) => {
       try {
         socket.value = io(config.url, {
@@ -111,6 +117,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
           console.log('WebSocket连接成功')
           connectionStatus.value = 'connected'
           reconnectAttempts.value = 0
+          connectedAt.value = Date.now()
           startHeartbeat()
           ElMessage.success('实时连接已建立')
           resolve()
@@ -179,6 +186,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       socket.value = null
       connectionStatus.value = 'disconnected'
       reconnectAttempts.value = 0
+      connectedAt.value = null
       eventListeners.clear()
       console.log('WebSocket连接已断开')
     }
@@ -266,12 +274,13 @@ export const useWebSocketStore = defineStore('websocket', () => {
     }
   }
 
-  // 设置业务事件监听器
+  // 设置业务事件监听器（仅绑定尚未绑定的）
   function setupEventListeners() {
     if (!socket.value) return
 
-    // 为已注册的事件监听器重新绑定
     eventListeners.forEach((callbacks, event) => {
+      // 先清除该事件的所有旧监听器，再重新绑定，避免重复
+      socket.value!.off(event)
       callbacks.forEach(callback => {
         socket.value!.on(event, callback as any)
       })
@@ -359,7 +368,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       status: connectionStatus.value,
       reconnectAttempts: reconnectAttempts.value,
       ping: ping.value,
-      uptime: socket.value?.connected ? Date.now() : 0
+      uptime: connectedAt.value ? Date.now() - connectedAt.value : 0
     }
   }
 

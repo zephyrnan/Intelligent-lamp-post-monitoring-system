@@ -97,24 +97,30 @@ router.get('/', async function(req, res, next) {
     // 计算总数
     const total = await RoomListModel.countDocuments(query);
 
-    // 计算分页
-    const skip = (parseInt(page) - 1) * parseInt(pageSize);
-    const limit = parseInt(pageSize);
+    // 计算分页（NaN 防护）
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageSizeNum = Math.max(1, Math.min(100, parseInt(pageSize) || 20));
+    const skip = (pageNum - 1) * pageSizeNum;
+
+    // 排序字段白名单，防止 NoSQL 注入
+    const ALLOWED_SORT_FIELDS = ['date', 'time', 'temp', 'hum', 'smoke', 'warn', 'roomId', 'lux', 'sc', 'sv', 'bv'];
+    const safeSortBy = ALLOWED_SORT_FIELDS.includes(sortBy) ? sortBy : 'date';
+    const safeSortOrder = sortOrder === 'asc' ? 1 : -1;
 
     // 构建排序
     let sort = {};
-    if (sortBy === 'date') {
-      sort.date = sortOrder === 'asc' ? 1 : -1;
-      sort.time = sortOrder === 'asc' ? 1 : -1;
+    if (safeSortBy === 'date') {
+      sort.date = safeSortOrder;
+      sort.time = safeSortOrder;
     } else {
-      sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+      sort[safeSortBy] = safeSortOrder;
     }
 
     // 查询数据
     let list = await RoomListModel.find(query)
       .sort(sort)
       .skip(skip)
-      .limit(limit);
+      .limit(pageSizeNum);
 
     res.json({
       code: 200,
@@ -122,9 +128,9 @@ router.get('/', async function(req, res, next) {
       data: list,
       pagination: {
         total: total,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize),
-        totalPages: Math.ceil(total / parseInt(pageSize))
+        page: pageNum,
+        pageSize: pageSizeNum,
+        totalPages: Math.ceil(total / pageSizeNum)
       }
     });
   } catch (err) {

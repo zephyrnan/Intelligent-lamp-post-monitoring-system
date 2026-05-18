@@ -75,6 +75,7 @@ async function fetchDeviceStatus() {
 // 处理设备控制
 async function handleDeviceControl(value: boolean) {
   const newStatus = value ? '1' : '0'
+  const previousStatus = deviceStatus.value
   loading.value = true
 
   try {
@@ -82,12 +83,15 @@ async function handleDeviceControl(value: boolean) {
     if (response.code === 200) {
       deviceStatus.value = newStatus
       ElMessage.success(`灯光已${value ? '开启' : '关闭'}`)
+    } else {
+      // 非 200 响应，恢复之前的状态
+      deviceStatus.value = previousStatus
+      ElMessage.error(response.message || '控制设备失败')
     }
   } catch (error: any) {
     console.error('控制设备失败:', error)
     ElMessage.error(error.message || '控制设备失败')
-    // 恢复到之前的状态
-    deviceStatus.value = deviceStatus.value === '1' ? '0' : '1'
+    deviceStatus.value = previousStatus
   } finally {
     loading.value = false
   }

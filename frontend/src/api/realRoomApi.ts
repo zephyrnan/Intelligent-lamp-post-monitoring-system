@@ -1,4 +1,4 @@
-import type { RoomInfo, SensorData, ApiResponse, AlarmInfo } from '@/types'
+import type { RoomInfo, SensorData, ApiResponse } from '@/types'
 
 // 真实API的房间数据格式
 interface RealRoomData {
@@ -31,30 +31,13 @@ interface RealRoomsResponse {
   rooms: RealRoomData[]
 }
 
-// 真实API报警信息响应格式
-interface RealAlarmResponse {
-  msg: string
-  code: number
-  page: {
-    list: RealRoomData[]
-  }
-}
-
 // 真实API的基础URL
-// const REAL_API_BASE = 'http://192.168.31.121:8032/api'
-const REAL_API_BASE = 'http://localhost:3000'
+const REAL_API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 // 房间名称和位置映射
 const roomConfig: Record<string, { name: string; location: string; description: string }> = {
   '1': { name: '灯杆01', location: 'A区', description: '灯杆01具体信息' },
   '2': { name: '灯杆02', location: 'B区', description: '灯杆02具体信息' },
   '3': { name: '灯杆03', location: 'C区', description: '灯杆03具体信息' }
-}
-
-// 报警级别映射
-const warnLevelMap: Record<string, 'normal' | 'warning' | 'error'> = {
-  '0': 'normal',
-  '1': 'warning',
-  '2': 'error'
 }
 
 // 将真实API数据转换为内部SensorData格式
@@ -133,6 +116,7 @@ export const realRoomApi = {
   async getRoomData(roomNumber: string): Promise<ApiResponse<{ roomInfo: RoomInfo, sensorData: SensorData }>> {
     try {
       const response = await fetch(`${REAL_API_BASE}/rooms/${roomNumber}`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data: RealApiResponse = await response.json()
 
       if (data.code !== 200 || !data.room) {
@@ -156,6 +140,7 @@ export const realRoomApi = {
   async getRooms(): Promise<ApiResponse<RoomInfo[]>> {
     try {
       const response = await fetch(`${REAL_API_BASE}/rooms`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data: RealRoomsResponse = await response.json()
 
       if (data.code !== 200 || !data.rooms) {
@@ -277,6 +262,7 @@ export const realRoomApi = {
 
       const url = `${REAL_API_BASE}/history?${queryParams.toString()}`
       const response = await fetch(url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data: {
         code: number;
         msg: string;
@@ -313,6 +299,7 @@ export const realRoomApi = {
     try {
       const roomNumber = roomId.replace('room0', '')
       const response = await fetch(`${REAL_API_BASE}/rooms/${roomNumber}/device/control`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -341,6 +328,7 @@ export const realRoomApi = {
         },
         body: JSON.stringify({ control })
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {

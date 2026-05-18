@@ -138,6 +138,7 @@ const searchKeyword = ref('')
 const statusFilter = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+let fetchRequestId = 0
 
 const searchTimer = ref<ReturnType<typeof setTimeout>>()
 
@@ -163,8 +164,10 @@ onUnmounted(() => {
 })
 
 async function fetchRooms() {
+  const requestId = ++fetchRequestId
   try {
     await roomStore.fetchRooms(filterParams.value)
+    if (requestId !== fetchRequestId) return
   } catch (error) {
     console.error('Failed to fetch rooms:', error)
   }

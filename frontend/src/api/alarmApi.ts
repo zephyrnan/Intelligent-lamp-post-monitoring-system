@@ -1,7 +1,7 @@
-import type { Alarm, AlarmInfo, PaginationParams, PaginatedResponse } from '@/types'
+import type { Alarm, PaginationParams, PaginatedResponse } from '@/types'
 
 // API基础URL
-const API_BASE = 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 
 export class AlarmApi {
   async getAlarms(params?: PaginationParams & {
@@ -42,6 +42,7 @@ export class AlarmApi {
 
       const url = `${API_BASE}/alarms?${queryParams.toString()}`
       const response = await fetch(url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const result = await response.json()
 
       if (result.code !== 200) {
@@ -63,9 +64,9 @@ export class AlarmApi {
           acknowledgedAt: alarm.acknowledgedAt,
           resolvedAt: alarm.resolvedAt
         })),
-        total: result.pagination.total,
-        page: result.pagination.page,
-        pageSize: result.pagination.pageSize
+        total: result.pagination?.total ?? result.data.length,
+        page: result.pagination?.page ?? params?.page ?? 1,
+        pageSize: result.pagination?.pageSize ?? params?.pageSize ?? 10
       }
     } catch (error: any) {
       console.error('获取报警信息失败:', error)
@@ -76,6 +77,7 @@ export class AlarmApi {
   async getAlarmById(id: string): Promise<Alarm> {
     try {
       const response = await fetch(`${API_BASE}/alarms/${id}`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -111,6 +113,7 @@ export class AlarmApi {
         },
         body: JSON.stringify({ acknowledgedBy })
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -145,6 +148,7 @@ export class AlarmApi {
           'Content-Type': 'application/json'
         }
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -180,6 +184,7 @@ export class AlarmApi {
   }> {
     try {
       const response = await fetch(`${API_BASE}/alarms/stats`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -208,6 +213,7 @@ export class AlarmApi {
         },
         body: JSON.stringify(alarm)
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -236,6 +242,7 @@ export class AlarmApi {
       const response = await fetch(`${API_BASE}/alarms/${id}`, {
         method: 'DELETE'
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -252,6 +259,7 @@ export class AlarmApi {
       const response = await fetch(`${API_BASE}/alarms/batch/resolved`, {
         method: 'DELETE'
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {

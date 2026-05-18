@@ -71,7 +71,9 @@ router.get('/', async function(req, res, next) {
     }
 
     if (detectionId) {
-      query.detectionId = new RegExp(detectionId, 'i'); // 支持模糊搜索
+      // 转义正则特殊字符，防止 ReDoS 攻击
+      const escaped = detectionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.detectionId = new RegExp(escaped, 'i');
     }
 
     if (startTime || endTime) {

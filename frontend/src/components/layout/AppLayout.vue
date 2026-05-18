@@ -6,7 +6,7 @@
           <el-button
             v-if="showMenuToggle"
             class="menu-toggle"
-            type="text"
+            link
             @click="toggleSidebar"
           >
             <el-icon :size="20"><Menu /></el-icon>
@@ -27,7 +27,7 @@
           <div class="header-status">
             <div class="status-badge" :class="{ 'status-badge--has-alerts': alarmCount > 0 }">
               <el-badge :value="alarmCount" :hidden="alarmCount === 0" type="danger" :max="99">
-                <el-button type="text" @click="$router.push('/alarms')" class="notification-btn">
+                <el-button link @click="$router.push('/alarms')" class="notification-btn">
                   <el-icon :size="20"><Bell /></el-icon>
                 </el-button>
               </el-badge>
@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Menu,
@@ -121,7 +121,7 @@ const router = useRouter()
 const alarmStore = useAlarmStore()
 const wsStore = useWebSocketStore()
 
-const sidebarCollapsed = ref(false)
+const sidebarCollapsed = ref(window.innerWidth <= 768)
 
 const currentRoute = computed(() => route.path)
 const alarmCount = computed(() => alarmStore.activeAlarms.length)

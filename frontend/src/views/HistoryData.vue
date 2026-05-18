@@ -208,6 +208,7 @@ const metricFilter = ref('')
 const aggregation = ref('')
 const currentPage = ref(1)
 const pageSize = ref(50)
+let fetchRequestId = 0
 
 // 禁用开始时间的未来日期，以及晚于结束时间的日期
 const disabledStartDate = (time: Date) => {
@@ -492,6 +493,7 @@ onMounted(() => {
 })
 
 async function fetchHistoryData() {
+  const requestId = ++fetchRequestId
   try {
     await historyStore.fetchHistoryData({
       roomId: selectedRoom.value || undefined,
@@ -501,6 +503,7 @@ async function fetchHistoryData() {
       page: currentPage.value,
       pageSize: pageSize.value
     })
+    if (requestId !== fetchRequestId) return
   } catch (error) {
     console.error('Failed to fetch history data:', error)
   }

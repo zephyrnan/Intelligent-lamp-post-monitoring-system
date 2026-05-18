@@ -1,14 +1,17 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { HistoryData, DetectionRecord, PaginationParams } from '@/types'
 import { historyApi } from '@/api'
 
 export const useHistoryStore = defineStore('history', () => {
   const historyData = ref<HistoryData[]>([])
   const detectionHistory = ref<DetectionRecord[]>([])
-  const loading = ref(false)
+  const historyLoading = ref(false)
+  const detectionLoading = ref(false)
   const historyTotal = ref(0)
   const detectionTotal = ref(0)
+
+  const loading = computed(() => historyLoading.value || detectionLoading.value)
 
   async function fetchHistoryData(params: {
     roomId?: string
@@ -23,7 +26,7 @@ export const useHistoryStore = defineStore('history', () => {
     maxSmoke?: number
   } & PaginationParams) {
     try {
-      loading.value = true
+      historyLoading.value = true
       const response = await historyApi.getHistoryData(params)
       historyData.value = response.items
       historyTotal.value = response.total
@@ -32,7 +35,7 @@ export const useHistoryStore = defineStore('history', () => {
       console.error('Failed to fetch history data:', error)
       throw error
     } finally {
-      loading.value = false
+      historyLoading.value = false
     }
   }
 
@@ -43,7 +46,7 @@ export const useHistoryStore = defineStore('history', () => {
     endTime?: string
   } & PaginationParams) {
     try {
-      loading.value = true
+      detectionLoading.value = true
       const response = await historyApi.getDetectionHistory(params)
       detectionHistory.value = response.items
       detectionTotal.value = response.total
@@ -52,7 +55,7 @@ export const useHistoryStore = defineStore('history', () => {
       console.error('Failed to fetch detection history:', error)
       throw error
     } finally {
-      loading.value = false
+      detectionLoading.value = false
     }
   }
 
@@ -67,10 +70,16 @@ export const useHistoryStore = defineStore('history', () => {
 
   function addHistoryData(data: HistoryData) {
     historyData.value.unshift(data)
+    if (historyData.value.length > 1000) {
+      historyData.value.length = 1000
+    }
   }
 
   function addDetectionRecord(record: DetectionRecord) {
     detectionHistory.value.unshift(record)
+    if (detectionHistory.value.length > 500) {
+      detectionHistory.value.length = 500
+    }
   }
 
   function clearHistoryData() {
@@ -82,9 +91,17 @@ export const useHistoryStore = defineStore('history', () => {
     detectionHistory.value = []
     detectionTotal.value = 0
   }
-
+// 获取指定房间的最新数据
   function getLatestDataByRoom(roomId: string): HistoryData | null {
-    return historyData.value.find(data => data.roomId === roomId) || null
+    let latest: HistoryData | null = null
+    for (const data of historyData.value) {
+      if (data.roomId === roomId) {
+        if (!latest || new Date(data.timestamp).getTime() > new Date(latest.timestamp).getTime()) {
+          latest = data
+        }
+      }
+    }
+    return latest
   }
 
   return {

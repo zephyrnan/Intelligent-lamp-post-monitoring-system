@@ -24,4 +24,9 @@ let RoomSchema = new mongoose.Schema({
     strict: false  // 允许schema之外的字段
 });
 
+// 创建索引以提高查询性能
+RoomSchema.index({ roomId: 1 });
+RoomSchema.index({ date: -1, time: -1 });
+RoomSchema.index({ warn: 1 });
+
 module.exports = mongoose.model('Room', RoomSchema);

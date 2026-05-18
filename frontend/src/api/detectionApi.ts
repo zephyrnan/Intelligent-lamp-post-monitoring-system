@@ -27,7 +27,7 @@ export interface DetectionItem {
 }
 
 // API基础URL
-const API_BASE = 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 
 export const detectionApi = {
   // 触发人员检测
@@ -40,6 +40,7 @@ export const detectionApi = {
           'Content-Type': 'application/json'
         }
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -89,6 +90,7 @@ export const detectionApi = {
 
       const url = `${API_BASE}/detections?${queryParams.toString()}`
       const response = await fetch(url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const result = await response.json()
 
       if (result.code !== 200) {
@@ -97,10 +99,10 @@ export const detectionApi = {
 
       return {
         items: result.data,
-        total: result.pagination.total,
-        page: result.pagination.page,
-        pageSize: result.pagination.pageSize,
-        totalPages: result.pagination.totalPages
+        total: result.pagination?.total ?? result.data.length,
+        page: result.pagination?.page ?? params.page ?? 1,
+        pageSize: result.pagination?.pageSize ?? params.pageSize ?? 20,
+        totalPages: result.pagination?.totalPages
       }
     } catch (error: any) {
       console.error('获取检测记录失败:', error)
@@ -112,6 +114,7 @@ export const detectionApi = {
   async getDetectionById(detectionId: string): Promise<ApiResponse<PersonDetection>> {
     try {
       const response = await fetch(`${API_BASE}/detections/${detectionId}`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -135,6 +138,7 @@ export const detectionApi = {
       const response = await fetch(`${API_BASE}/detections/${detectionId}`, {
         method: 'DELETE'
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {
@@ -172,6 +176,7 @@ export const detectionApi = {
           roomId: roomNumber
         })
       })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
       if (data.code !== 200) {

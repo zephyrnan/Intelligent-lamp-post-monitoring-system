@@ -3,22 +3,6 @@ import { ref, computed } from 'vue'
 import type { Alarm, PaginationParams } from '@/types'
 import { alarmApi } from '@/api'
 
-// 告警状态类型
-type AlarmStatus = 'active' | 'acknowledged' | 'resolved'
-
-// 状态机：定义合法的状态转换路径
-// active → acknowledged → resolved，不允许跳过或回退
-const VALID_TRANSITIONS: Record<AlarmStatus, AlarmStatus[]> = {
-  active: ['acknowledged'],
-  acknowledged: ['resolved'],
-  resolved: []
-}
-
-// 校验状态转换是否合法
-function isValidTransition(from: AlarmStatus, to: AlarmStatus): boolean {
-  return VALID_TRANSITIONS[from]?.includes(to) ?? false
-}
-
 export const useAlarmStore = defineStore('alarm', () => {
   const alarms = ref<Alarm[]>([])
   const loading = ref(false)
@@ -36,20 +20,24 @@ export const useAlarmStore = defineStore('alarm', () => {
     alarms.value.filter(alarm => alarm.level === 'critical' && alarm.status === 'active')
   )
 
-  const alarmStats = computed(() => ({
-    total: alarms.value.length,
-    active: alarms.value.filter(a => a.status === 'active').length,
-    acknowledged: alarms.value.filter(a => a.status === 'acknowledged').length,
-    resolved: alarms.value.filter(a => a.status === 'resolved').length,
-    critical: alarms.value.filter(a => a.level === 'critical').length,
-    high: alarms.value.filter(a => a.level === 'high').length,
-    medium: alarms.value.filter(a => a.level === 'medium').length,
-    low: alarms.value.filter(a => a.level === 'low').length
-  }))
+  const alarmStats = computed(() => {
+    const stats = { total: alarms.value.length, active: 0, acknowledged: 0, resolved: 0, critical: 0, high: 0, medium: 0, low: 0 }
+    for (const a of alarms.value) {
+      if (a.status === 'active') stats.active++
+      else if (a.status === 'acknowledged') stats.acknowledged++
+      else if (a.status === 'resolved') stats.resolved++
+      if (a.level === 'critical') stats.critical++
+      else if (a.level === 'high') stats.high++
+      else if (a.level === 'medium') stats.medium++
+      else if (a.level === 'low') stats.low++
+    }
+    return stats
+  })
 
   async function fetchAlarms(params?: Partial<PaginationParams & {
     status?: string
     level?: string
+    type?: string
     roomId?: string
     startTime?: string
     endTime?: string
@@ -75,12 +63,6 @@ export const useAlarmStore = defineStore('alarm', () => {
 
   async function acknowledgeAlarm(id: string, acknowledgedBy: string) {
     try {
-      // 状态机校验：只有 active 状态的告警可以被确认
-      const alarm = alarms.value.find(a => a.id === id)
-      if (alarm && alarm.status && !isValidTransition(alarm.status as AlarmStatus, 'acknowledged')) {
-        throw new Error(`非法状态转换：${alarm.status} → acknowledged，只有 active 状态的告警可被确认`)
-      }
-
       const updatedAlarm = await alarmApi.acknowledgeAlarm(id, acknowledgedBy)
       const index = alarms.value.findIndex(alarm => alarm.id === id)
       if (index !== -1) {
@@ -95,12 +77,6 @@ export const useAlarmStore = defineStore('alarm', () => {
 
   async function resolveAlarm(id: string) {
     try {
-      // 状态机校验：只有 acknowledged 状态的告警可以被解决
-      const alarm = alarms.value.find(a => a.id === id)
-      if (alarm && alarm.status && !isValidTransition(alarm.status as AlarmStatus, 'resolved')) {
-        throw new Error(`非法状态转换：${alarm.status} → resolved，只有 acknowledged 状态的告警可被解决`)
-      }
-
       const updatedAlarm = await alarmApi.resolveAlarm(id)
       const index = alarms.value.findIndex(alarm => alarm.id === id)
       if (index !== -1) {
@@ -125,13 +101,6 @@ export const useAlarmStore = defineStore('alarm', () => {
   }) {
     const alarm = alarms.value.find(a => a.id === id)
     if (alarm) {
-      // 状态机校验
-      const currentStatus = (alarm.status || 'active') as AlarmStatus
-      const targetStatus = (status || 'active') as AlarmStatus
-      if (!isValidTransition(currentStatus, targetStatus)) {
-        console.warn(`告警状态转换被拒绝：${currentStatus} → ${targetStatus}`)
-        return
-      }
       alarm.status = status
       if (meta) {
         Object.assign(alarm, meta)

@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 import type { Room, PaginationParams, SensorData } from '@/types'
 import { roomApi, realRoomApi } from '@/api'
 
 export const useRoomStore = defineStore('room', () => {
   const rooms = ref<Room[]>([])
   const currentRoom = ref<Room | null>(null)
-  const currentSensorData = ref<Record<string, SensorData>>({})
+  const currentSensorData = shallowRef<Record<string, SensorData>>({})
   const loading = ref(false)
   const total = ref(0)
   const pagination = ref<PaginationParams>({
@@ -22,13 +22,16 @@ export const useRoomStore = defineStore('room', () => {
     rooms.value.filter(room => room.status === 'warning' || room.status === 'error')
   )
 
-  const roomStats = computed(() => ({
-    total: rooms.value.length,
-    normal: rooms.value.filter(r => r.status === 'normal').length,
-    warning: rooms.value.filter(r => r.status === 'warning').length,
-    error: rooms.value.filter(r => r.status === 'error').length,
-    offline: rooms.value.filter(r => r.status === 'offline').length
-  }))
+  const roomStats = computed(() => {
+    const stats = { total: rooms.value.length, normal: 0, warning: 0, error: 0, offline: 0 }
+    for (const r of rooms.value) {
+      if (r.status === 'normal') stats.normal++
+      else if (r.status === 'warning') stats.warning++
+      else if (r.status === 'error') stats.error++
+      else if (r.status === 'offline') stats.offline++
+    }
+    return stats
+  })
 
   async function fetchRooms(params?: Partial<PaginationParams & { status?: string; search?: string }>) {
     try {
@@ -173,7 +176,7 @@ export const useRoomStore = defineStore('room', () => {
 
   // 更新传感器数据
   function updateSensorData(sensorData: SensorData) {
-    currentSensorData.value[sensorData.roomId] = sensorData
+    currentSensorData.value = { ...currentSensorData.value, [sensorData.roomId]: sensorData }
   }
 
   // 获取指定房间的传感器数据

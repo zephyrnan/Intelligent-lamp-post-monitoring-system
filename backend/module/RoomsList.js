@@ -24,4 +24,9 @@ let HistorySchema = new mongoose.Schema({
     strict: false  // 允许schema之外的字段
 });
 
+// 创建索引以提高查询性能
+HistorySchema.index({ roomId: 1, date: -1, time: -1 });
+HistorySchema.index({ date: -1 });
+HistorySchema.index({ warn: 1 });
+
 module.exports = mongoose.model('RoomHistory', HistorySchema);

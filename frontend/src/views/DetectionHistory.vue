@@ -185,6 +185,7 @@ const previewImageTitle = ref('')
 const loading = ref(false)
 const detections = ref<PersonDetection[]>([])
 const total = ref(0)
+let fetchRequestId = 0
 
 const filterParams = computed(() => ({
   page: currentPage.value,
@@ -199,9 +200,11 @@ onMounted(() => {
 })
 
 async function fetchDetectionHistory() {
+  const requestId = ++fetchRequestId
   try {
     loading.value = true
     const response = await detectionApi.getDetectionHistory(filterParams.value)
+    if (requestId !== fetchRequestId) return
     detections.value = response.items
     total.value = response.total
   } catch (error) {

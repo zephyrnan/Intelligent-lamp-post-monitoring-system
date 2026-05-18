@@ -75,11 +75,21 @@ onMounted(() => {
   if (canvasRef.value) {
     ctx = canvasRef.value.getContext('2d')
   }
-  if (!ws.isConnected) {
-    ws.connect()
-  }
   ws.on('video_frame', handler)
-  ws.joinRoom(props.roomId)
+  if (ws.isConnected) {
+    ws.joinRoom(props.roomId)
+  } else {
+    ws.connect().then(() => {
+      ws.joinRoom(props.roomId)
+    })
+  }
+})
+
+// 断线重连后重新加入房间
+watch(() => ws.isConnected, (connected) => {
+  if (connected) {
+    ws.joinRoom(props.roomId)
+  }
 })
 
 onUnmounted(() => {

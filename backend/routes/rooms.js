@@ -17,10 +17,23 @@ router.get('/', async function(req, res, next) {
   }
 });
 
+// 获取所有历史数据（必须在 /:id 之前，否则会被参数路由捕获）
+router.get('/history', async function(req, res, next) {
+  try {
+    let list = await RoomModel.find();
+    res.json({
+      code: 200,
+      msg: '查询成功',
+      history: list
+    });
+  } catch (err) {
+    res.status(500).json({ code: 500, error: err.message });
+  }
+});
+
 // 根据 roomId 获取单个房间数据
 router.get('/:id', async function(req, res, next) {
   try {
-    console.log(req.params.id);
     const roomId = req.params.id;
 
     const room = await RoomModel.findOne({ roomId: roomId });
@@ -43,22 +56,6 @@ router.get('/:id', async function(req, res, next) {
     res.status(500).json({ code: 500, error: err.message });
   }
 });
-
-// 获取所有历史数据
-router.get('/history', async function(req, res, next)
-{
-  try {
-    let list = await RoomModel.find();
-    res.json({
-      code: 200,
-      msg: '查询成功',
-      history: list
-    });
-  }
-  catch (err) {
-    res.status(500).json({ code: 500, error: err.message });
-  }
-})
 
 
 // 更新设备控制状态

@@ -85,6 +85,9 @@ onMounted(() => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             isVisible.value = true
+            // 进入可视区域后断开观察器，不再需要
+            observer?.disconnect()
+            observer = null
           }
         })
       },
@@ -413,16 +416,17 @@ const chartOption = computed((): EChartsOption => {
   }
 
   if (props.type === 'pie') {
+    const pieData = chartData.value.datasets?.[0]?.data
     return {
       ...baseOption,
       series: [{
         type: 'pie',
         radius: ['45%', '75%'],
         center: ['50%', '55%'],
-        data: chartData.value.datasets[0].data.map((value: number, index: number) => ({
+        data: pieData ? pieData.map((value: number, index: number) => ({
           name: chartData.value.labels[index],
           value
-        })),
+        })) : [],
         itemStyle: {
           borderRadius: 12,
           borderColor: '#fff',
@@ -652,7 +656,7 @@ watch(
   }
 
   .chart-content {
-    margin: 0 -var(--space-xs);
+    margin: 0 calc(-1 * var(--space-xs));
   }
 }
 
@@ -674,3 +678,4 @@ watch(
   }
 }
 </style>
+

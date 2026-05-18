@@ -271,6 +271,7 @@ watch(
       wsStore.off('room_data_update')
       wsStore.off('room_status_update')
       fetchRoomData()
+      setupWebSocketListeners()
     }
   }
 )
@@ -296,6 +297,8 @@ async function fetchRoomData() {
       sensorData.value = sensorResponse.data
       checkAndNotifyAlarm(sensorResponse.data)
     }
+
+    if (requestId !== fetchRequestId) return
 
     if (roomStore.currentRoom) {
       wsStore.joinRoom(props.id)
@@ -444,6 +447,10 @@ function setupWebSocketListeners() {
   wsStore.on('room_data_update', (data: { roomId: string; temperature: number; humidity: number; airQuality: number; timestamp: string }) => {
     if (data.roomId === props.id) {
       roomStore.updateRoomData(data.roomId, data)
+      // 同步更新本地 sensorData 以驱动 UI 实时刷新
+      if (sensorData.value) {
+        sensorData.value = { ...sensorData.value, ...data }
+      }
     }
   })
 
@@ -502,8 +509,6 @@ async function handlePersonDetection() {
     // 调用人员检测API
     const result = await detectionApi.detectPerson(props.id)
 
-    detecting.value = false
-
     if (result.code === 200) {
       ElNotification({
         title: '人员检测完成',
@@ -530,7 +535,6 @@ async function handlePersonDetection() {
       })
     }
   } catch (error: any) {
-    detecting.value = false
     console.error('人员检测失败:', error)
     ElNotification({
       title: '人员检测失败',
@@ -540,6 +544,8 @@ async function handlePersonDetection() {
       position: 'top-right',
       offset: 80
     })
+  } finally {
+    detecting.value = false
   }
 }
 </script>

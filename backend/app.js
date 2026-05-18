@@ -15,20 +15,24 @@ var app = express();
 // ==========================================
 // 1. 连接 MongoDB 数据库
 // ==========================================
-mongoose.connect('mongodb://localhost:27017/roomMonitor')
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/roomMonitor';
+mongoose.connect(MONGODB_URI)
     .then(() => console.log('✅ MongoDB 连接成功！'))
     .catch(err => console.error('❌ MongoDB 连接失败:', err));
 
 // ==========================================
 // 2. 配置 CORS 跨域 (重要！否则Vue访问会报错)
 // ==========================================
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',');
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*"); // 允许任何来源访问
-  res.header("Access-Control-Allow-Headers", "Content-Type,Authorization"); // 允许的Header
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"); // 允许的方法
-  res.header("Connection", "close"); // 禁用 keep-alive，兼容某些 HTTP 客户端
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200); // 让预检请求快速通过
+    res.sendStatus(200);
   } else {
     next();
   }
@@ -39,8 +43,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
