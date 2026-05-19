@@ -7,7 +7,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas } = require('canvas');
 
 const app = express();
 const server = http.createServer(app);

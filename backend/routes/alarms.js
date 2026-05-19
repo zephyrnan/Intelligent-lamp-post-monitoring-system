@@ -53,8 +53,8 @@ router.get('/', async function(req, res, next) {
     }
 
     // 分页查询
-    const pageNum = parseInt(page);
-    const pageSizeNum = parseInt(pageSize);
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageSizeNum = Math.max(1, Math.min(100, parseInt(pageSize) || 20));
     const skip = (pageNum - 1) * pageSizeNum;
 
     // 查询总数
@@ -255,6 +255,56 @@ router.get('/stats', async function(req, res, next) {
   }
 });
 
+// 根据报警ID获取单条报警
+router.get('/:alarmId', async function(req, res, next) {
+  try {
+    const { alarmId } = req.params;
+    const alarm = await Alarm.findOne({ alarmId });
+
+    if (!alarm) {
+      return res.status(404).json({
+        code: 404,
+        msg: '未找到该报警'
+      });
+    }
+
+    res.json({
+      code: 200,
+      msg: '查询成功',
+      data: alarm
+    });
+  } catch (err) {
+    console.error('获取报警详情失败:', err);
+    res.status(500).json({
+      code: 500,
+      msg: '获取报警详情失败',
+      error: err.message
+    });
+  }
+});
+
+// 批量删除已解决的报警
+router.delete('/batch/resolved', async function(req, res, next) {
+  try {
+    const result = await Alarm.deleteMany({ status: 'resolved' });
+
+    res.json({
+      code: 200,
+      msg: `成功删除${result.deletedCount}条已解决的报警`,
+      data: {
+        deletedCount: result.deletedCount
+      }
+    });
+  } catch (err) {
+    console.error('批量删除报警失败:', err);
+    res.status(500).json({
+      code: 500,
+      msg: '批量删除报警失败',
+      error: err.message
+    });
+  }
+});
+
 // 删除报警
 router.delete('/:alarmId', async function(req, res, next) {
   try {
@@ -278,28 +328,6 @@ router.delete('/:alarmId', async function(req, res, next) {
     res.status(500).json({
       code: 500,
       msg: '删除报警失败',
-      error: err.message
-    });
-  }
-});
-
-// 批量删除已解决的报警
-router.delete('/batch/resolved', async function(req, res, next) {
-  try {
-    const result = await Alarm.deleteMany({ status: 'resolved' });
-
-    res.json({
-      code: 200,
-      msg: `成功删除${result.deletedCount}条已解决的报警`,
-      data: {
-        deletedCount: result.deletedCount
-      }
-    });
-  } catch (err) {
-    console.error('批量删除报警失败:', err);
-    res.status(500).json({
-      code: 500,
-      msg: '批量删除报警失败',
       error: err.message
     });
   }

@@ -1,12 +1,21 @@
 <template>
   <div class="not-found">
-    <el-result icon="warning" title="页面不存在" sub-title="您访问的页面不存在或已被移动">
+    <el-result
+      icon="warning"
+      title="页面不存在"
+      sub-title="您访问的页面不存在或已被移动"
+    >
       <template #extra>
-        <el-button type="primary" @click="$router.push('/')">返回首页</el-button>
+        <el-button
+          type="primary"
+          @click="$router.push('/')"
+        >
+          返回首页
+        </el-button>
       </template>
     </el-result>
   </div>
-  </template>
+</template>
 
 <script setup lang="ts"></script>
 

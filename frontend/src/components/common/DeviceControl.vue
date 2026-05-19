@@ -2,7 +2,10 @@
   <div class="device-control-section">
     <div class="section-header">
       <h2>设备控制</h2>
-      <el-tag :type="deviceStatus === '1' ? 'success' : 'info'" size="large">
+      <el-tag
+        :type="deviceStatus === '1' ? 'success' : 'info'"
+        size="large"
+      >
         {{ deviceStatus === '1' ? '已开启' : '已关闭' }}
       </el-tag>
     </div>
@@ -10,14 +13,19 @@
     <div class="device-list">
       <div class="device-item">
         <div class="device-info">
-          <div class="device-icon" :class="{ active: deviceStatus === '1' }">
+          <div
+            class="device-icon"
+            :class="{ active: deviceStatus === '1' }"
+          >
             <el-icon :size="32">
               <component :is="Sunny" />
             </el-icon>
           </div>
           <div class="device-details">
             <h3>灯光控制</h3>
-            <p class="device-description">控制房间灯光的开关状态</p>
+            <p class="device-description">
+              控制房间灯光的开关状态
+            </p>
           </div>
         </div>
 

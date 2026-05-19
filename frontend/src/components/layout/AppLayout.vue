@@ -9,15 +9,21 @@
             link
             @click="toggleSidebar"
           >
-            <el-icon :size="20"><Menu /></el-icon>
+            <el-icon :size="20">
+              <Menu />
+            </el-icon>
           </el-button>
 
           <div class="header-logo">
             <div class="logo-icon">
-              <el-icon :size="32"><Monitor /></el-icon>
+              <el-icon :size="32">
+                <Monitor />
+              </el-icon>
             </div>
             <div class="logo-text">
-              <h1 class="header-title">{{ title }}</h1>
+              <h1 class="header-title">
+                {{ title }}
+              </h1>
               <span class="header-subtitle">智能监控系统</span>
             </div>
           </div>
@@ -25,19 +31,36 @@
 
         <div class="header-right">
           <div class="header-status">
-            <div class="status-badge" :class="{ 'status-badge--has-alerts': alarmCount > 0 }">
-              <el-badge :value="alarmCount" :hidden="alarmCount === 0" type="danger" :max="99">
-                <el-button link @click="$router.push('/alarms')" class="notification-btn">
-                  <el-icon :size="20"><Bell /></el-icon>
+            <div
+              class="status-badge"
+              :class="{ 'status-badge--has-alerts': alarmCount > 0 }"
+            >
+              <el-badge
+                :value="alarmCount"
+                :hidden="alarmCount === 0"
+                type="danger"
+                :max="99"
+              >
+                <el-button
+                  link
+                  class="notification-btn"
+                  @click="$router.push('/alarms')"
+                >
+                  <el-icon :size="20">
+                    <Bell />
+                  </el-icon>
                 </el-button>
               </el-badge>
             </div>
           </div>
 
-          <div class="connection-status" :class="{ 'connected': connected }">
+          <div
+            class="connection-status"
+            :class="{ 'connected': connected }"
+          >
             <div class="connection-indicator">
-              <div class="connection-dot"></div>
-              <div class="connection-pulse"></div>
+              <div class="connection-dot" />
+              <div class="connection-pulse" />
             </div>
             <span class="connection-text">{{ connected ? '已连接' : '未连接' }}</span>
           </div>
@@ -51,14 +74,14 @@
           class="layout-sidebar"
           :class="{ 'collapsed': sidebarCollapsed }"
         >
-          <div class="sidebar-backdrop"></div>
+          <div class="sidebar-backdrop" />
           <nav class="sidebar-nav">
             <el-menu
               :default-active="currentRoute"
               mode="vertical"
               :collapse="sidebarCollapsed"
-              @select="handleMenuSelect"
               class="sidebar-menu"
+              @select="handleMenuSelect"
             >
               <el-menu-item
                 v-for="item in menuItems"
@@ -74,7 +97,7 @@
         </el-aside>
 
         <el-main class="layout-main">
-          <div class="main-background"></div>
+          <div class="main-background" />
           <div class="main-content">
             <slot />
           </div>
@@ -86,12 +109,12 @@
       v-if="showSidebar && !sidebarCollapsed"
       class="mobile-overlay"
       @click="toggleSidebar"
-    ></div>
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Menu,
@@ -110,7 +133,7 @@ interface Props {
   showMenuToggle?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   title: '机房监控',
   showSidebar: true,
   showMenuToggle: true

@@ -16,7 +16,10 @@ var app = express();
 // 1. 连接 MongoDB 数据库
 // ==========================================
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/roomMonitor';
-mongoose.connect(MONGODB_URI)
+mongoose.set('bufferCommands', false);
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000
+})
     .then(() => console.log('✅ MongoDB 连接成功！'))
     .catch(err => console.error('❌ MongoDB 连接失败:', err));
 

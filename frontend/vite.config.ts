@@ -7,17 +7,17 @@ import { viteMockServe } from 'vite-plugin-mock'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
-  const enableMock = command === 'serve' || command === 'build'
+  const enableMock = command === 'serve'
   return {
     plugins: [
       vue(),
-      vueDevTools(),
+      command === 'serve' && vueDevTools(),
       viteMockServe({
         mockPath: 'mock',
         enable: enableMock,
         watchFiles: true
       })
-    ],
+    ].filter(Boolean),
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -25,6 +25,17 @@ export default defineConfig(({ command }) => {
     },
     server: {
       port: 5173
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vue: ['vue', 'vue-router', 'pinia'],
+            element: ['element-plus', '@element-plus/icons-vue'],
+            charts: ['echarts', 'vue-echarts']
+          }
+        }
+      }
     }
   }
 })

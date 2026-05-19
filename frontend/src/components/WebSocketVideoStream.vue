@@ -3,18 +3,27 @@
     <div class="ws-video__header">
       <h3>{{ title }}</h3>
       <div class="header-right">
-        <slot name="actions"></slot>
-        <el-tag size="small" :type="connected ? 'success' : 'info'">{{ connected ? '已连接' : '未连接' }}</el-tag>
+        <slot name="actions" />
+        <el-tag
+          size="small"
+          :type="connected ? 'success' : 'info'"
+        >
+          {{ connected ? '已连接' : '未连接' }}
+        </el-tag>
       </div>
     </div>
     <div class="ws-video__canvas">
-      <canvas ref="canvasRef" :width="width" :height="height"></canvas>
+      <canvas
+        ref="canvasRef"
+        :width="width"
+        :height="height"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useWebSocketStore } from '@/stores'
 
 interface Props {
@@ -32,7 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const ws = useWebSocketStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const connected = ws.isConnected
+const connected = computed(() => ws.isConnected)
 let ctx: CanvasRenderingContext2D | null = null
 let alive = true
 let pendingImage: HTMLImageElement | null = null

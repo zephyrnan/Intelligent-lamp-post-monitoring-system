@@ -26,14 +26,32 @@
           clearable
           @change="handleStatusFilter"
         >
-          <el-option label="全部" value="" />
-          <el-option label="正常" value="normal" />
-          <el-option label="警告" value="warning" />
-          <el-option label="异常" value="error" />
-          <el-option label="离线" value="offline" />
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="正常"
+            value="normal"
+          />
+          <el-option
+            label="警告"
+            value="warning"
+          />
+          <el-option
+            label="异常"
+            value="error"
+          />
+          <el-option
+            label="离线"
+            value="offline"
+          />
         </el-select>
 
-        <el-button type="primary" @click="refreshRooms">
+        <el-button
+          type="primary"
+          @click="refreshRooms"
+        >
           <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
@@ -84,7 +102,10 @@
         >
           <template #template>
             <div class="skeleton-card">
-              <el-skeleton-item variant="rect" style="width: 100%; height: 200px;" />
+              <el-skeleton-item
+                variant="rect"
+                style="width: 100%; height: 200px;"
+              />
             </div>
           </template>
         </el-skeleton>
@@ -107,7 +128,10 @@
       </template>
     </div>
 
-    <div v-if="roomStore.total > roomStore.pagination.pageSize" class="pagination">
+    <div
+      v-if="roomStore.total > roomStore.pagination.pageSize"
+      class="pagination"
+    >
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"

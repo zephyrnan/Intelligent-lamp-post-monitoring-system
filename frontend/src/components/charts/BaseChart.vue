@@ -1,24 +1,40 @@
 <template>
-  <div ref="chartWrapperRef" class="chart-container">
+  <div
+    ref="chartWrapperRef"
+    class="chart-container"
+  >
     <div class="chart-header">
-      <h3 class="chart-title">{{ title }}</h3>
-      <div v-if="loading" class="chart-loading">
-        <el-icon class="is-loading"><Loading /></el-icon>
+      <h3 class="chart-title">
+        {{ title }}
+      </h3>
+      <div
+        v-if="loading"
+        class="chart-loading"
+      >
+        <el-icon class="is-loading">
+          <Loading />
+        </el-icon>
       </div>
     </div>
     <!-- v-if 懒加载：仅当图表进入可视区域后才渲染 -->
-    <div class="chart-content" :style="{ height: `${height}px` }">
+    <div
+      class="chart-content"
+      :style="{ height: `${height}px` }"
+    >
       <v-chart
         v-if="isVisible && !loading && chartData"
         :option="throttledChartOption"
         :style="{ width: '100%', height: '100%' }"
         autoresize
       />
-      <div v-else-if="!loading && !chartData" class="chart-empty">
+      <div
+        v-else-if="!loading && !chartData"
+        class="chart-empty"
+      >
         <el-empty description="暂无数据" />
       </div>
     </div>
-    <div class="chart-decoration"></div>
+    <div class="chart-decoration" />
   </div>
 </template>
 

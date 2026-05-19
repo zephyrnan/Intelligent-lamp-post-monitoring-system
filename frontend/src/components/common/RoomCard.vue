@@ -1,14 +1,26 @@
 <template>
-  <div class="room-card" :class="`room-card--${room.status}`" @click="$emit('click', room)">
+  <div
+    class="room-card"
+    :class="`room-card--${room.status}`"
+    @click="$emit('click', room)"
+  >
     <div class="room-card__header">
       <div class="room-card__info">
-        <h3 class="room-card__name">{{ room.name }}</h3>
-        <p v-if="room.location" class="room-card__location">
+        <h3 class="room-card__name">
+          {{ room.name }}
+        </h3>
+        <p
+          v-if="room.location"
+          class="room-card__location"
+        >
           <el-icon><Location /></el-icon>
           {{ room.location }}
         </p>
       </div>
-      <el-tag :type="statusType" size="small">
+      <el-tag
+        :type="statusType"
+        size="small"
+      >
         {{ statusText }}
       </el-tag>
     </div>
@@ -46,7 +58,10 @@
     </div>
 
     <div class="room-card__footer">
-      <div v-if="room.deviceCount" class="room-card__devices">
+      <div
+        v-if="room.deviceCount"
+        class="room-card__devices"
+      >
         <el-icon><Monitor /></el-icon>
         <span>{{ room.deviceCount }} 台设备</span>
       </div>

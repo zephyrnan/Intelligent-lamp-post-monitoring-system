@@ -7,6 +7,16 @@ export const useAlarmStore = defineStore('alarm', () => {
   const alarms = ref<Alarm[]>([])
   const loading = ref(false)
   const total = ref(0)
+  const serverStats = ref<{
+    total: number
+    active: number
+    acknowledged: number
+    resolved: number
+    critical: number
+    high: number
+    medium: number
+    low: number
+  } | null>(null)
   const pagination = ref<PaginationParams>({
     page: 1,
     pageSize: 10
@@ -21,6 +31,8 @@ export const useAlarmStore = defineStore('alarm', () => {
   )
 
   const alarmStats = computed(() => {
+    if (serverStats.value) return serverStats.value
+
     const stats = { total: alarms.value.length, active: 0, acknowledged: 0, resolved: 0, critical: 0, high: 0, medium: 0, low: 0 }
     for (const a of alarms.value) {
       if (a.status === 'active') stats.active++
@@ -45,9 +57,22 @@ export const useAlarmStore = defineStore('alarm', () => {
     try {
       loading.value = true
       const searchParams = { ...pagination.value, ...params }
-      const response = await alarmApi.getAlarms(searchParams)
+      const [response, stats] = await Promise.all([
+        alarmApi.getAlarms(searchParams),
+        alarmApi.getAlarmStats()
+      ])
 
       alarms.value = response.items
+      serverStats.value = {
+        total: stats.total,
+        active: stats.active,
+        acknowledged: stats.acknowledged,
+        resolved: stats.resolved,
+        critical: stats.byLevel.critical || 0,
+        high: stats.byLevel.high || 0,
+        medium: stats.byLevel.medium || 0,
+        low: stats.byLevel.low || 0
+      }
       total.value = response.total
       pagination.value = {
         page: response.page,
@@ -92,6 +117,7 @@ export const useAlarmStore = defineStore('alarm', () => {
   function addAlarm(alarm: Alarm) {
     alarms.value.unshift(alarm)
     total.value++
+    serverStats.value = null
   }
 
   function updateAlarmStatus(id: string, status: Alarm['status'], meta?: {
@@ -105,6 +131,7 @@ export const useAlarmStore = defineStore('alarm', () => {
       if (meta) {
         Object.assign(alarm, meta)
       }
+      serverStats.value = null
     }
   }
 
@@ -113,12 +140,14 @@ export const useAlarmStore = defineStore('alarm', () => {
     if (index !== -1) {
       alarms.value.splice(index, 1)
       total.value--
+      serverStats.value = null
     }
   }
 
   function clearAlarms() {
     alarms.value = []
     total.value = 0
+    serverStats.value = null
   }
 
   function getAlarmsByRoom(roomId: string) {

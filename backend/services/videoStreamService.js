@@ -6,6 +6,7 @@
 const FPS = 15; // 每秒15帧
 const WIDTH = 640;
 const HEIGHT = 360;
+const RoomModel = require('../module/Rooms');
 
 // 存储每个房间的流状态
 const roomStreams = new Map();
@@ -142,7 +143,7 @@ function startRoomStream(io, roomId) {
 
     // 生成帧并发送
     const frameData = generateSVGFrame(roomId, frameCount);
-    io.to(roomId).emit(`video_frame_${roomId}`, {
+    io.to(roomId).emit('video_frame', {
       roomId,
       frame: frameData
     });
@@ -156,6 +157,35 @@ function startRoomStream(io, roomId) {
   });
 
   console.log(`📹 启动 ${roomId} 视频流 (${FPS} FPS)`);
+}
+
+function getRoomStatus(warn) {
+  if (String(warn) === '0') return 'normal';
+  if (String(warn) === '1') return 'warning';
+  return 'error';
+}
+
+async function emitRoomSnapshot(socket, roomId) {
+  try {
+    const roomNumber = String(roomId).replace('room0', '');
+    const room = await RoomModel.findOne({ roomId: roomNumber }).lean();
+    if (!room) return;
+
+    const status = getRoomStatus(room.warn);
+    socket.emit('room_data_update', {
+      roomId,
+      temperature: Number(room.temp) || 0,
+      humidity: Number(room.hum) || 0,
+      airQuality: Number(room.lux) || 0,
+      timestamp: `${room.date}T${room.time}`
+    });
+    socket.emit('room_status_update', {
+      roomId,
+      status
+    });
+  } catch (error) {
+    console.error(`发送 ${roomId} 房间快照失败:`, error.message);
+  }
 }
 
 /**
@@ -213,6 +243,7 @@ function initVideoStream(io) {
       console.log(`📥 ${socket.id} 加入房间: ${roomId}`);
       socket.join(roomId);
       addViewer(io, roomId);
+      emitRoomSnapshot(socket, roomId);
     });
 
     // 离开房间
@@ -221,6 +252,10 @@ function initVideoStream(io) {
       console.log(`📤 ${socket.id} 离开房间: ${roomId}`);
       socket.leave(roomId);
       removeViewer(roomId);
+    });
+
+    socket.on('ping', (timestamp) => {
+      socket.emit('pong', timestamp);
     });
 
     // 断开连接

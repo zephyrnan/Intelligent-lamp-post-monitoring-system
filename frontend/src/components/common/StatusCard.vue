@@ -1,24 +1,42 @@
 <template>
-  <div class="status-card" :class="`status-card--${status}`">
+  <div
+    class="status-card"
+    :class="`status-card--${status}`"
+  >
     <div class="status-card__header">
-      <div class="status-card__icon" :class="`status-card__icon--${status}`">
+      <div
+        class="status-card__icon"
+        :class="`status-card__icon--${status}`"
+      >
         <el-icon :size="iconSize">
           <component :is="statusIcon" />
         </el-icon>
       </div>
       <div class="status-card__title">
         <h3>{{ title }}</h3>
-        <p v-if="subtitle" class="status-card__subtitle">{{ subtitle }}</p>
+        <p
+          v-if="subtitle"
+          class="status-card__subtitle"
+        >
+          {{ subtitle }}
+        </p>
       </div>
     </div>
 
     <div class="status-card__content">
       <div class="status-card__value">
         <span class="status-card__number">{{ value }}</span>
-        <span v-if="unit" class="status-card__unit">{{ unit }}</span>
+        <span
+          v-if="unit"
+          class="status-card__unit"
+        >{{ unit }}</span>
       </div>
 
-      <div v-if="trend !== undefined && trend !== 0" class="status-card__trend" :class="`status-card__trend--${trendDirection}`">
+      <div
+        v-if="trend !== undefined && trend !== 0"
+        class="status-card__trend"
+        :class="`status-card__trend--${trendDirection}`"
+      >
         <el-icon :size="12">
           <ArrowUp v-if="trendDirection === 'up'" />
           <ArrowDown v-if="trendDirection === 'down'" />
@@ -27,7 +45,10 @@
       </div>
     </div>
 
-    <div v-if="description" class="status-card__description">
+    <div
+      v-if="description"
+      class="status-card__description"
+    >
       {{ description }}
     </div>
   </div>
@@ -56,6 +77,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  subtitle: '',
+  unit: '',
+  trend: 0,
+  description: '',
   iconSize: 24
 })
 

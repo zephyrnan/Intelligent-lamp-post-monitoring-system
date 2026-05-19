@@ -33,7 +33,7 @@ const { initVideoStream } = require('../services/videoStreamService');
 
 const io = socketIo(server, {
   cors: {
-    origin: '*',
+    origin: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(','),
     methods: ['GET', 'POST']
   }
 });

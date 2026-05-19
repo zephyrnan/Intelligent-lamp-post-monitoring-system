@@ -9,15 +9,42 @@
           clearable
           @change="handleTypeFilter"
         >
-          <el-option label="全部" value="" />
-          <el-option label="温度" value="temperature" />
-          <el-option label="湿度" value="humidity" />
-          <el-option label="光照强度" value="lux" />
-          <el-option label="旁路电流" value="sc" />
-          <el-option label="旁路电压" value="sv" />
-          <el-option label="总电压" value="bv" />
-          <el-option label="设备离线" value="device_offline" />
-          <el-option label="入侵检测" value="intrusion" />
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="温度"
+            value="temperature"
+          />
+          <el-option
+            label="湿度"
+            value="humidity"
+          />
+          <el-option
+            label="光照强度"
+            value="lux"
+          />
+          <el-option
+            label="旁路电流"
+            value="sc"
+          />
+          <el-option
+            label="旁路电压"
+            value="sv"
+          />
+          <el-option
+            label="总电压"
+            value="bv"
+          />
+          <el-option
+            label="设备离线"
+            value="device_offline"
+          />
+          <el-option
+            label="入侵检测"
+            value="intrusion"
+          />
         </el-select>
         <el-date-picker
           v-model="timeRange"
@@ -36,10 +63,22 @@
           clearable
           @change="handleStatusFilter"
         >
-          <el-option label="全部" value="" />
-          <el-option label="活跃" value="active" />
-          <el-option label="已确认" value="acknowledged" />
-          <el-option label="已解决" value="resolved" />
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="活跃"
+            value="active"
+          />
+          <el-option
+            label="已确认"
+            value="acknowledged"
+          />
+          <el-option
+            label="已解决"
+            value="resolved"
+          />
         </el-select>
 
         <el-select
@@ -49,14 +88,32 @@
           clearable
           @change="handleLevelFilter"
         >
-          <el-option label="全部" value="" />
-          <el-option label="严重" value="critical" />
-          <el-option label="高" value="high" />
-          <el-option label="中" value="medium" />
-          <el-option label="低" value="low" />
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="严重"
+            value="critical"
+          />
+          <el-option
+            label="高"
+            value="high"
+          />
+          <el-option
+            label="中"
+            value="medium"
+          />
+          <el-option
+            label="低"
+            value="low"
+          />
         </el-select>
 
-        <el-button type="primary" @click="refreshAlarms">
+        <el-button
+          type="primary"
+          @click="refreshAlarms"
+        >
           <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
@@ -91,33 +148,65 @@
         style="width: 100%"
         @row-click="handleRowClick"
       >
-        <el-table-column prop="roomName" label="房间" width="120" />
-        <el-table-column prop="type" label="类型" width="120">
+        <el-table-column
+          prop="roomName"
+          label="房间"
+          width="120"
+        />
+        <el-table-column
+          prop="type"
+          label="类型"
+          width="120"
+        >
           <template #default="scope">
             {{ getTypeLabel(scope.row.type) }}
           </template>
         </el-table-column>
-        <el-table-column prop="level" label="级别" width="100">
+        <el-table-column
+          prop="level"
+          label="级别"
+          width="100"
+        >
           <template #default="scope">
-            <el-tag :type="getLevelType(scope.row.level)" size="small">
+            <el-tag
+              :type="getLevelType(scope.row.level)"
+              size="small"
+            >
               {{ getLevelLabel(scope.row.level) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="描述" />
-        <el-table-column prop="timestamp" label="时间" width="160">
+        <el-table-column
+          prop="message"
+          label="描述"
+        />
+        <el-table-column
+          prop="timestamp"
+          label="时间"
+          width="160"
+        >
           <template #default="scope">
             {{ formatTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column
+          prop="status"
+          label="状态"
+          width="100"
+        >
           <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)" size="small">
+            <el-tag
+              :type="getStatusType(scope.row.status)"
+              size="small"
+            >
               {{ getStatusLabel(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column
+          label="操作"
+          width="180"
+        >
           <template #default="scope">
             <el-button
               v-if="scope.row.status === 'active'"
@@ -166,10 +255,10 @@ const alarmStore = useAlarmStore()
 const statusFilter = ref('')
 const levelFilter = ref('')
 const typeFilter = ref('')
-// 设置更大的时间范围以包含所有数据（从2025-01-01到未来一年）
+// 设置较大的时间范围以包含历史数据，结束时间默认到当前时间
 const timeRange = ref<[string, string]>([
   new Date('2025-01-01').toISOString(),
-  new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+  new Date().toISOString()
 ])
 const currentPage = ref(1)
 const pageSize = ref(20)
@@ -242,7 +331,7 @@ async function handleAcknowledge(alarm: Alarm) {
   try {
     await alarmStore.acknowledgeAlarm(alarm.id, '')
     ElMessage.success('报警已确认')
-  } catch (error) {
+  } catch {
     ElMessage.error('确认失败')
   }
 }
@@ -251,7 +340,7 @@ async function handleResolve(alarm: Alarm) {
   try {
     await alarmStore.resolveAlarm(alarm.id)
     ElMessage.success('报警已解决')
-  } catch (error) {
+  } catch {
     ElMessage.error('解决失败')
   }
 }

@@ -68,7 +68,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const config: WebSocketConfig = {
     //url: 'ws://192.168.3.2:8032',
-    url: 'http://localhost:3000',
+    url: import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_BASE || 'http://localhost:3000',
     autoReconnect: true,
     reconnectInterval: 1000, // 基础重连间隔（指数退避起始值）
     maxReconnectAttempts: 10,
@@ -308,13 +308,13 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   // 订阅房间数据更新
   function subscribeToRoom(roomId: string) {
-    emit('subscribe:room', { roomId })
+    emit('join_room', { roomId })
     console.log(`订阅房间数据更新: ${roomId}`)
   }
 
   // 取消订阅房间数据更新
   function unsubscribeFromRoom(roomId: string) {
-    emit('unsubscribe:room', { roomId })
+    emit('leave_room', { roomId })
     console.log(`取消订阅房间数据更新: ${roomId}`)
   }
 

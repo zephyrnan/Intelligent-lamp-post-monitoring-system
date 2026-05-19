@@ -149,6 +149,7 @@ export interface PaginationParams {
 
 export interface PaginatedResponse<T> {
   items: T[]
+  allItems?: T[]
   total: number
   page: number
   pageSize: number

@@ -30,7 +30,10 @@
           @change="handleDateChange"
         />
 
-        <el-button type="primary" @click="refreshData">
+        <el-button
+          type="primary"
+          @click="refreshData"
+        >
           <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
@@ -46,25 +49,55 @@
         stripe
         border
       >
-        <el-table-column prop="roomId" label="房间编号" width="120" align="center">
+        <el-table-column
+          prop="roomId"
+          label="房间编号"
+          width="120"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-tag type="primary" size="small">{{ row.roomId }}</el-tag>
+            <el-tag
+              type="primary"
+              size="small"
+            >
+              {{ row.roomId }}
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="personCount" label="人员数量" width="120" align="center">
+        <el-table-column
+          prop="personCount"
+          label="人员数量"
+          width="120"
+          align="center"
+        >
           <template #default="{ row }">
-            <el-tag type="warning" size="large">
-              <el-icon style="margin-right: 4px;"><User /></el-icon>
+            <el-tag
+              type="warning"
+              size="large"
+            >
+              <el-icon style="margin-right: 4px;">
+                <User />
+              </el-icon>
               {{ row.personCount }} 人
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="检测详情" min-width="200">
+        <el-table-column
+          label="检测详情"
+          min-width="200"
+        >
           <template #default="{ row }">
-            <div v-if="row.detections && row.detections.length > 0" class="detections-cell">
-              <div v-for="(det, idx) in row.detections" :key="idx" class="detection-item">
+            <div
+              v-if="row.detections && row.detections.length > 0"
+              class="detections-cell"
+            >
+              <div
+                v-for="(det, idx) in row.detections"
+                :key="idx"
+                class="detection-item"
+              >
                 <span class="detection-label">{{ det.label }}</span>
                 <el-progress
                   :percentage="Math.round(det.confidence * 100)"
@@ -76,11 +109,19 @@
                 />
               </div>
             </div>
-            <span v-else class="text-placeholder">无详情</span>
+            <span
+              v-else
+              class="text-placeholder"
+            >无详情</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="timestamp" label="检测时间" width="180" align="center">
+        <el-table-column
+          prop="timestamp"
+          label="检测时间"
+          width="180"
+          align="center"
+        >
           <template #default="{ row }">
             <div class="timestamp-cell">
               <el-icon><Clock /></el-icon>
@@ -89,7 +130,11 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="原始图片" width="120" align="center">
+        <el-table-column
+          label="原始图片"
+          width="120"
+          align="center"
+        >
           <template #default="{ row }">
             <el-button
               v-if="row.originalImage"
@@ -100,11 +145,18 @@
               <el-icon><View /></el-icon>
               查看
             </el-button>
-            <span v-else class="text-placeholder">无图片</span>
+            <span
+              v-else
+              class="text-placeholder"
+            >无图片</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="检测图片" width="120" align="center">
+        <el-table-column
+          label="检测图片"
+          width="120"
+          align="center"
+        >
           <template #default="{ row }">
             <el-button
               v-if="row.detectedImage"
@@ -115,11 +167,19 @@
               <el-icon><View /></el-icon>
               查看
             </el-button>
-            <span v-else class="text-placeholder">无图片</span>
+            <span
+              v-else
+              class="text-placeholder"
+            >无图片</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="100" align="center" fixed="right">
+        <el-table-column
+          label="操作"
+          width="100"
+          align="center"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
               type="danger"
@@ -141,9 +201,9 @@
         :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
+        background
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        background
       />
     </div>
 
@@ -160,7 +220,7 @@
           :src="previewImage"
           :alt="previewImageTitle"
           style="width: 100%; height: auto; max-height: 600px; object-fit: contain;"
-        />
+        >
       </div>
     </el-dialog>
   </div>

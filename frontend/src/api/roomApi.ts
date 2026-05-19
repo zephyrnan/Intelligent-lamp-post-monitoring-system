@@ -43,6 +43,7 @@ export class RoomApi {
 
       return {
         items: paginatedRooms,
+        allItems: rooms,
         total: rooms.length,
         page,
         pageSize
@@ -68,17 +69,17 @@ export class RoomApi {
     }
   }
 
-  async createRoom(room: Omit<Room, 'id' | 'lastUpdateTime'>): Promise<Room> {
+  async createRoom(_room: Omit<Room, 'id' | 'lastUpdateTime'>): Promise<Room> {
     // 暂不支持创建房间
     throw new Error('创建房间功能暂未实现')
   }
 
-  async updateRoom(id: string, roomData: Partial<Room>): Promise<Room> {
+  async updateRoom(_id: string, _roomData: Partial<Room>): Promise<Room> {
     // 暂不支持更新房间
     throw new Error('更新房间功能暂未实现')
   }
 
-  async deleteRoom(id: string): Promise<void> {
+  async deleteRoom(_id: string): Promise<void> {
     // 暂不支持删除房间
     throw new Error('删除房间功能暂未实现')
   }
@@ -113,7 +114,6 @@ export class RoomApi {
 
   async getRoomDevices(id: string): Promise<any[]> {
     // 返回设备列表（可以根据实际需求扩展）
-    const roomNumber = id.replace('room0', '')
     return [
       {
         id: `valve_${id}`,

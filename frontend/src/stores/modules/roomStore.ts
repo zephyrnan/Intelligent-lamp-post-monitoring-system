@@ -5,6 +5,7 @@ import { roomApi, realRoomApi } from '@/api'
 
 export const useRoomStore = defineStore('room', () => {
   const rooms = ref<Room[]>([])
+  const allRooms = ref<Room[]>([])
   const currentRoom = ref<Room | null>(null)
   const currentSensorData = shallowRef<Record<string, SensorData>>({})
   const loading = ref(false)
@@ -15,16 +16,16 @@ export const useRoomStore = defineStore('room', () => {
   })
 
   const activeRooms = computed(() =>
-    rooms.value.filter(room => room.status !== 'offline')
+    allRooms.value.filter(room => room.status !== 'offline')
   )
 
   const warningRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'warning' || room.status === 'error')
+    allRooms.value.filter(room => room.status === 'warning' || room.status === 'error')
   )
 
   const roomStats = computed(() => {
-    const stats = { total: rooms.value.length, normal: 0, warning: 0, error: 0, offline: 0 }
-    for (const r of rooms.value) {
+    const stats = { total: allRooms.value.length, normal: 0, warning: 0, error: 0, offline: 0 }
+    for (const r of allRooms.value) {
       if (r.status === 'normal') stats.normal++
       else if (r.status === 'warning') stats.warning++
       else if (r.status === 'error') stats.error++
@@ -40,6 +41,7 @@ export const useRoomStore = defineStore('room', () => {
       const response = await roomApi.getRooms(searchParams)
 
       rooms.value = response.items
+      allRooms.value = response.allItems || response.items
       total.value = response.total
       pagination.value = {
         page: response.page,
@@ -95,6 +97,7 @@ export const useRoomStore = defineStore('room', () => {
       loading.value = true
       const newRoom = await roomApi.createRoom(roomData)
       rooms.value.unshift(newRoom)
+      allRooms.value.unshift(newRoom)
       total.value++
       return newRoom
     } catch (error) {
@@ -113,6 +116,10 @@ export const useRoomStore = defineStore('room', () => {
       if (index !== -1) {
         rooms.value[index] = updatedRoom
       }
+      const fullIndex = allRooms.value.findIndex(room => room.id === id)
+      if (fullIndex !== -1) {
+        allRooms.value[fullIndex] = updatedRoom
+      }
       if (currentRoom.value?.id === id) {
         currentRoom.value = updatedRoom
       }
@@ -130,6 +137,7 @@ export const useRoomStore = defineStore('room', () => {
       loading.value = true
       await roomApi.deleteRoom(id)
       rooms.value = rooms.value.filter(room => room.id !== id)
+      allRooms.value = allRooms.value.filter(room => room.id !== id)
       total.value--
       if (currentRoom.value?.id === id) {
         currentRoom.value = null
@@ -148,6 +156,11 @@ export const useRoomStore = defineStore('room', () => {
       room.status = status
       room.lastUpdateTime = new Date().toISOString()
     }
+    const fullRoom = allRooms.value.find(r => r.id === id)
+    if (fullRoom) {
+      fullRoom.status = status
+      fullRoom.lastUpdateTime = new Date().toISOString()
+    }
     if (currentRoom.value?.id === id) {
       currentRoom.value.status = status
       currentRoom.value.lastUpdateTime = new Date().toISOString()
@@ -158,6 +171,10 @@ export const useRoomStore = defineStore('room', () => {
     const room = rooms.value.find(r => r.id === id)
     if (room) {
       Object.assign(room, data, { lastUpdateTime: new Date().toISOString() })
+    }
+    const fullRoom = allRooms.value.find(r => r.id === id)
+    if (fullRoom) {
+      Object.assign(fullRoom, data, { lastUpdateTime: new Date().toISOString() })
     }
     if (currentRoom.value?.id === id) {
       Object.assign(currentRoom.value, data, { lastUpdateTime: new Date().toISOString() })
@@ -170,6 +187,7 @@ export const useRoomStore = defineStore('room', () => {
 
   function clearRooms() {
     rooms.value = []
+    allRooms.value = []
     currentRoom.value = null
     total.value = 0
   }
@@ -201,6 +219,7 @@ export const useRoomStore = defineStore('room', () => {
 
   return {
     rooms,
+    allRooms,
     currentRoom,
     currentSensorData,
     loading,

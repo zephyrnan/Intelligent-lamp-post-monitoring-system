@@ -87,8 +87,8 @@ router.get('/', async function(req, res, next) {
     }
 
     // 分页查询
-    const pageNum = parseInt(page);
-    const pageSizeNum = parseInt(pageSize);
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageSizeNum = Math.max(1, Math.min(100, parseInt(pageSize) || 24));
     const skip = (pageNum - 1) * pageSizeNum;
 
     // 查询总数

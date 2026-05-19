@@ -1,15 +1,33 @@
 <template>
   <div class="room-detail-page">
-    <div v-if="roomStore.loading" class="loading-container">
-      <el-skeleton :loading="true" animated>
+    <div
+      v-if="roomStore.loading"
+      class="loading-container"
+    >
+      <el-skeleton
+        :loading="true"
+        animated
+      >
         <template #template>
           <div class="skeleton-content">
-            <el-skeleton-item variant="rect" style="width: 100%; height: 200px;" />
+            <el-skeleton-item
+              variant="rect"
+              style="width: 100%; height: 200px;"
+            />
             <div style="padding: 14px;">
-              <el-skeleton-item variant="h1" style="width: 50%" />
+              <el-skeleton-item
+                variant="h1"
+                style="width: 50%"
+              />
               <div style="display: flex; align-items: center; justify-items: space-between;">
-                <el-skeleton-item variant="text" style="margin-right: 16px;" />
-                <el-skeleton-item variant="text" style="width: 30%;" />
+                <el-skeleton-item
+                  variant="text"
+                  style="margin-right: 16px;"
+                />
+                <el-skeleton-item
+                  variant="text"
+                  style="width: 30%;"
+                />
               </div>
             </div>
           </div>
@@ -28,7 +46,10 @@
           <div class="room-info">
             <h1>{{ roomStore.currentRoom.name }}</h1>
             <div class="room-meta">
-              <el-tag :type="statusType" size="large">
+              <el-tag
+                :type="statusType"
+                size="large"
+              >
                 {{ statusText }}
               </el-tag>
               <span class="update-time">
@@ -50,7 +71,10 @@
       <div class="sensor-data-section">
         <div class="section-header">
           <h2>传感器数据</h2>
-          <el-tag :type="statusType" size="large">
+          <el-tag
+            :type="statusType"
+            size="large"
+          >
             {{ getWarnLabel(currentSensorData.warn) }}
           </el-tag>
         </div>
@@ -61,7 +85,10 @@
               <el-icon><TrendCharts /></el-icon>
               <span>温度</span>
             </div>
-            <div class="sensor-value" :class="getTemperatureClass(currentSensorData.temp)">
+            <div
+              class="sensor-value"
+              :class="getTemperatureClass(currentSensorData.temp)"
+            >
               {{ currentSensorData.temp }} °C
             </div>
           </div>
@@ -71,7 +98,10 @@
               <el-icon><Drizzling /></el-icon>
               <span>湿度</span>
             </div>
-            <div class="sensor-value" :class="getHumidityClass(currentSensorData.hum)">
+            <div
+              class="sensor-value"
+              :class="getHumidityClass(currentSensorData.hum)"
+            >
               {{ currentSensorData.hum }} %
             </div>
           </div>
@@ -81,7 +111,10 @@
               <el-icon><Warning /></el-icon>
               <span>烟雾浓度</span>
             </div>
-            <div class="sensor-value" :class="getSmokeClass(currentSensorData.smoke)">
+            <div
+              class="sensor-value"
+              :class="getSmokeClass(currentSensorData.smoke)"
+            >
               {{ currentSensorData.smoke }}
             </div>
           </div>
@@ -139,9 +172,9 @@
             <template #actions>
               <el-button
                 type="warning"
-                @click="handlePersonDetection"
                 :loading="detecting"
                 size="default"
+                @click="handlePersonDetection"
               >
                 <el-icon><User /></el-icon>
                 人员检测
@@ -157,14 +190,20 @@
       />
     </template>
 
-    <div v-else class="error-container">
+    <div
+      v-else
+      class="error-container"
+    >
       <el-result
         icon="error"
         title="数据加载失败"
         sub-title="无法获取房间信息，请检查网络连接或稍后重试"
       >
         <template #extra>
-          <el-button type="primary" @click="fetchRoomData">
+          <el-button
+            type="primary"
+            @click="fetchRoomData"
+          >
             重新加载
           </el-button>
           <el-button @click="$router.go(-1)">
@@ -477,12 +516,6 @@ function getHumidityClass(humidity: number): string {
   if (humidity < 30 || humidity > 80) return 'value-error'
   if (humidity < 40 || humidity > 70) return 'value-warning'
   return 'value-normal'
-}
-
-function getWarnType(warn: number): 'success' | 'warning' | 'danger' {
-  if (warn === 0) return 'success'
-  if (warn === 1) return 'warning'
-  return 'danger'
 }
 
 function getWarnLabel(warn: number): string {

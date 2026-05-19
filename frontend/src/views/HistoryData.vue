@@ -7,8 +7,17 @@
       </div>
 
       <div class="header-actions">
-        <el-select v-model="selectedRoom" placeholder="选择房间" style="width: 160px" @change="handleFilterChange" clearable>
-          <el-option label="全部房间" value="" />
+        <el-select
+          v-model="selectedRoom"
+          placeholder="选择房间"
+          style="width: 160px"
+          clearable
+          @change="handleFilterChange"
+        >
+          <el-option
+            label="全部房间"
+            value=""
+          />
           <el-option
             v-for="room in availableRooms"
             :key="room.id"
@@ -17,26 +26,83 @@
           />
         </el-select>
 
-        <el-select v-model="warnFilter" placeholder="报警状态" style="width: 140px" @change="handleFilterChange" clearable>
-          <el-option label="全部" value="" />
-          <el-option label="正常" :value="0" />
-          <el-option label="警告" :value="1" />
-          <el-option label="严重" :value="2" />
+        <el-select
+          v-model="warnFilter"
+          placeholder="报警状态"
+          style="width: 140px"
+          clearable
+          @change="handleFilterChange"
+        >
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="正常"
+            :value="0"
+          />
+          <el-option
+            label="警告"
+            :value="1"
+          />
+          <el-option
+            label="严重"
+            :value="2"
+          />
         </el-select>
 
-        <el-select v-model="metricFilter" placeholder="图表指标" style="width: 140px" @change="handleChartFilterChange" clearable>
-          <el-option label="全部" value="" />
-          <el-option label="温度" value="temperature" />
-          <el-option label="湿度" value="humidity" />
-          <el-option label="烟雾浓度" value="smoke" />
-          <el-option label="光照强度" value="lux" />
+        <el-select
+          v-model="metricFilter"
+          placeholder="图表指标"
+          style="width: 140px"
+          clearable
+          @change="handleChartFilterChange"
+        >
+          <el-option
+            label="全部"
+            value=""
+          />
+          <el-option
+            label="温度"
+            value="temperature"
+          />
+          <el-option
+            label="湿度"
+            value="humidity"
+          />
+          <el-option
+            label="烟雾浓度"
+            value="smoke"
+          />
+          <el-option
+            label="光照强度"
+            value="lux"
+          />
         </el-select>
 
-        <el-select v-model="aggregation" placeholder="聚合方式" style="width: 140px" @change="handleChartFilterChange" clearable>
-          <el-option label="原始数据" value="" />
-          <el-option label="按小时" value="hour" />
-          <el-option label="按天" value="day" />
-          <el-option label="按周" value="week" />
+        <el-select
+          v-model="aggregation"
+          placeholder="聚合方式"
+          style="width: 140px"
+          clearable
+          @change="handleChartFilterChange"
+        >
+          <el-option
+            label="原始数据"
+            value=""
+          />
+          <el-option
+            label="按小时"
+            value="hour"
+          />
+          <el-option
+            label="按天"
+            value="day"
+          />
+          <el-option
+            label="按周"
+            value="week"
+          />
         </el-select>
 
         <el-date-picker
@@ -46,8 +112,8 @@
           format="YYYY-MM-DD HH:mm:ss"
           value-format="YYYY-MM-DDTHH:mm:ss.SSS[Z]"
           :disabled-date="disabledStartDate"
-          @change="handleDateChange"
           style="width: 200px"
+          @change="handleDateChange"
         />
         <span style="margin: 0 8px; color: var(--text-secondary);">至</span>
         <el-date-picker
@@ -57,11 +123,14 @@
           format="YYYY-MM-DD HH:mm:ss"
           value-format="YYYY-MM-DDTHH:mm:ss.SSS[Z]"
           :disabled-date="disabledEndDate"
-          @change="handleDateChange"
           style="width: 200px"
+          @change="handleDateChange"
         />
 
-        <el-button type="primary" @click="refreshData">
+        <el-button
+          type="primary"
+          @click="refreshData"
+        >
           <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
@@ -78,16 +147,31 @@
         :show-data-zoom="true"
       />
 
-      <div v-if="statisticsSummary" class="statistics-summary">
-        <div class="stat-card" v-for="stat in statisticsSummary" :key="stat.name">
+      <div
+        v-if="statisticsSummary"
+        class="statistics-summary"
+      >
+        <div
+          v-for="stat in statisticsSummary"
+          :key="stat.name"
+          class="stat-card"
+        >
           <div class="stat-header">
-            <el-icon :size="24" :color="stat.color"><component :is="stat.icon" /></el-icon>
+            <el-icon
+              :size="24"
+              :color="stat.color"
+            >
+              <component :is="stat.icon" />
+            </el-icon>
             <span class="stat-name">{{ stat.name }}</span>
           </div>
           <div class="stat-values">
             <div class="stat-value">
               <span class="stat-label">最高</span>
-              <span class="stat-number" :style="{ color: stat.color }">{{ stat.max }}{{ stat.unit }}</span>
+              <span
+                class="stat-number"
+                :style="{ color: stat.color }"
+              >{{ stat.max }}{{ stat.unit }}</span>
             </div>
             <div class="stat-value">
               <span class="stat-label">平均</span>
@@ -95,7 +179,10 @@
             </div>
             <div class="stat-value">
               <span class="stat-label">最低</span>
-              <span class="stat-number" :style="{ color: stat.color }">{{ stat.min }}{{ stat.unit }}</span>
+              <span
+                class="stat-number"
+                :style="{ color: stat.color }"
+              >{{ stat.min }}{{ stat.unit }}</span>
             </div>
           </div>
         </div>
@@ -114,60 +201,111 @@
         stripe
         :default-sort="{ prop: 'timestamp', order: 'descending' }"
       >
-        <el-table-column prop="roomId" label="房间ID" width="120" fixed sortable>
+        <el-table-column
+          prop="roomId"
+          label="房间ID"
+          width="120"
+          fixed
+          sortable
+        >
           <template #default="scope">
             {{ scope.row.roomId }}
           </template>
         </el-table-column>
-        <el-table-column prop="smoke" label="烟雾浓度" width="120" sortable>
+        <el-table-column
+          prop="smoke"
+          label="烟雾浓度"
+          width="120"
+          sortable
+        >
           <template #default="scope">
             <span :class="getSmokeClass(scope.row.smoke)">
               {{ scope.row.smoke }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="temperature" label="温度 (°C)" width="130" sortable>
+        <el-table-column
+          prop="temperature"
+          label="温度 (°C)"
+          width="130"
+          sortable
+        >
           <template #default="scope">
             <span :class="getTemperatureClass(scope.row.temperature)">
               {{ scope.row.temperature }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="humidity" label="湿度 (%)" width="120" sortable>
+        <el-table-column
+          prop="humidity"
+          label="湿度 (%)"
+          width="120"
+          sortable
+        >
           <template #default="scope">
             <span :class="getHumidityClass(scope.row.humidity)">
               {{ scope.row.humidity }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="warn" label="报警状态" width="120" sortable>
+        <el-table-column
+          prop="warn"
+          label="报警状态"
+          width="120"
+          sortable
+        >
           <template #default="scope">
             <el-tag :type="getWarnType(scope.row.warn)">
               {{ getWarnLabel(scope.row.warn) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lux" label="光照强度" width="120" sortable>
+        <el-table-column
+          prop="lux"
+          label="光照强度"
+          width="120"
+          sortable
+        >
           <template #default="scope">
             {{ scope.row.lux }}
           </template>
         </el-table-column>
-        <el-table-column prop="sc" label="旁路电流 (A)" width="140" sortable>
+        <el-table-column
+          prop="sc"
+          label="旁路电流 (A)"
+          width="140"
+          sortable
+        >
           <template #default="scope">
             {{ scope.row.sc }}
           </template>
         </el-table-column>
-        <el-table-column prop="sv" label="旁路电压 (V)" width="140" sortable>
+        <el-table-column
+          prop="sv"
+          label="旁路电压 (V)"
+          width="140"
+          sortable
+        >
           <template #default="scope">
             {{ scope.row.sv }}
           </template>
         </el-table-column>
-        <el-table-column prop="bv" label="总电压 (V)" width="130" sortable>
+        <el-table-column
+          prop="bv"
+          label="总电压 (V)"
+          width="130"
+          sortable
+        >
           <template #default="scope">
             {{ scope.row.bv }}
           </template>
         </el-table-column>
-        <el-table-column prop="timestamp" label="时间" width="200" sortable>
+        <el-table-column
+          prop="timestamp"
+          label="时间"
+          width="200"
+          sortable
+        >
           <template #default="scope">
             {{ formatTime(scope.row.timestamp) }}
           </template>
@@ -199,9 +337,9 @@ import type { HistoryData } from '@/types'
 const historyStore = useHistoryStore()
 const roomStore = useRoomStore()
 
-// 设置更大的时间范围以包含所有数据（从2025-01-01到未来一年）
+// 设置较大的时间范围以包含历史数据，结束时间默认到当前时间
 const startTime = ref(new Date('2025-01-01').toISOString())
-const endTime = ref(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString())
+const endTime = ref(new Date().toISOString())
 const selectedRoom = ref('')
 const warnFilter = ref<number | ''>('')
 const metricFilter = ref('')
@@ -231,7 +369,7 @@ const disabledEndDate = (time: Date) => {
 }
 
 // 可用房间列表
-const availableRooms = computed(() => roomStore.rooms)
+const availableRooms = computed(() => roomStore.allRooms.length ? roomStore.allRooms : roomStore.rooms)
 
 // 聚合数据函数
 function aggregateData(data: HistoryData[], type: string) {
@@ -250,11 +388,12 @@ function aggregateData(data: HistoryData[], type: string) {
       case 'day':
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
         break
-      case 'week':
+      case 'week': {
         const weekStart = new Date(date)
         weekStart.setDate(date.getDate() - date.getDay())
         key = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`
         break
+      }
       default:
         key = item.timestamp
     }
